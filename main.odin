@@ -49,6 +49,10 @@ main :: proc() {
 		quit := gui.handle_events(&window)
 		if quit {break}
 
+		if window.resized {
+			app.resize_app(&application)
+		}
+
 		gui.begin_frame(&window)
 
 		app.tick(&application, &window.input)

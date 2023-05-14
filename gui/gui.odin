@@ -13,6 +13,7 @@ Window :: struct {
 	bg_color:     sdl.Color,
 	width:        i32,
 	height:       i32,
+	resized:      bool,
 }
 
 init_window :: proc(title: cstring, width: i32, height: i32) -> (Window, bool) {
@@ -81,6 +82,7 @@ handle_events :: proc(wnd: ^Window) -> bool {
 			case .RESIZED:
 				wnd.width = event.window.data1
 				wnd.height = event.window.data2
+				wnd.resized = true
 			}
 		case .MOUSEMOTION:
 			wnd.input.mouse_x = event.motion.x
@@ -140,6 +142,8 @@ begin_frame :: proc(window: ^Window) {
 }
 
 end_frame :: proc(window: ^Window) {
+	window.resized = false
+
 	draw_render_queue(window.renderer, &window.render_queue)
 	sdl.RenderPresent(window.renderer)
 }

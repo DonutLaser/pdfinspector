@@ -38,10 +38,18 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	result := App {
 		window        = window,
 		pdf_doc       = pdf_doc,
-		tabs          = create_tabs(),
-		structure     = create_structure(),
-		document_view = create_document_view(pdf_doc.page_count),
-		modal_manager = create_modal_manager(),
+		tabs          = create_tabs(gui.Rect{0, 0, TABS_WIDTH, window.height}),
+		structure     = create_structure(gui.Rect{TABS_WIDTH, 0, STRUCTURE_WIDTH, window.height}),
+		document_view = create_document_view(
+			gui.Rect{
+				TABS_WIDTH + STRUCTURE_WIDTH,
+				0,
+				window.width - TABS_WIDTH - STRUCTURE_WIDTH,
+				window.height,
+			},
+			pdf_doc.page_count,
+		),
+		modal_manager = create_modal_manager(gui.Rect{0, 0, window.width, window.height}),
 		icons         = make(map[string]gui.Image),
 		fonts         = make(map[i32]gui.Font),
 	}
@@ -94,6 +102,22 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 destroy_app :: proc(app: ^App) {
 	pdf.close_document(app.pdf_doc)
 	pdf.deinit()
+}
+
+resize_app :: proc(app: ^App) {
+	// At this point, the window that we have a reference to should have the new sizes already set
+	resize_tabs(&app.tabs, app.window.height)
+	resize_structure(&app.structure, app.window.height)
+	resize_document_view(
+		&app.document_view,
+		gui.Rect{
+			TABS_WIDTH + STRUCTURE_WIDTH,
+			0,
+			app.window.width - TABS_WIDTH - STRUCTURE_WIDTH,
+			app.window.height,
+		},
+	)
+	resize_modals(&app.modal_manager, app.window.width / 2, app.window.height / 2)
 }
 
 tick :: proc(app: ^App, input: ^gui.Input) {

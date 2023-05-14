@@ -15,6 +15,7 @@ Metadata_Modal :: struct {
 }
 
 create_metadata_modal :: proc() -> Metadata_Modal {
+	width: i32 = METADATA_MODAL_WIDTH + METADATA_PADDING * 2
 	result := Metadata_Modal {
 		is_visible = false,
 		fields     = make([dynamic]Metadata_Field),
@@ -51,18 +52,18 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 
 	font := &app.fonts[14]
 
-	gui.draw_rect(app.window, 0, 0, app.window.width, app.window.height, MODAL_OVERLAY_COLOR)
-
 	// TODO: this is a mess
 	line_count := i32(len(mm.fields))
 	width: i32 = METADATA_MODAL_WIDTH + METADATA_PADDING * 2
 	height: i32 =
 		line_count * font.size + METADATA_PADDING * 2 + (line_count - 1) * METADATA_LINE_SPACING
 
-	x, y := gui.get_rect_center(0, 0, app.window.width, app.window.height)
+	x, y := gui.get_rect_center(gui.Rect{0, 0, app.window.width, app.window.height})
 	left, top := x - width / 2, y - height / 2
-	gui.draw_rect(app.window, left, top, width, height, MODAL_BG_COLOR)
-	gui.draw_rect(app.window, left, top, width, height, MODAL_BORDER_COLOR, 1)
+
+	modal_rect := gui.Rect{left, top, width, height}
+	gui.draw_rect(app.window, modal_rect, MODAL_BG_COLOR)
+	gui.draw_rect(app.window, modal_rect, MODAL_BORDER_COLOR, 1)
 
 	cursor_x, cursor_y := left + METADATA_PADDING, top + METADATA_PADDING
 	for field, index in mm.fields {

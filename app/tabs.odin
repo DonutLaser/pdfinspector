@@ -11,23 +11,19 @@ Clicked_Tab :: enum {
 }
 
 Tabs :: struct {
+	rect:            gui.Rect,
 	text_button:     Tab_Button,
 	metadata_button: Tab_Button,
 }
 
-create_tabs :: proc() -> Tabs {
+create_tabs :: proc(rect: gui.Rect) -> Tabs {
 	result := Tabs {
+		rect            = rect,
 		text_button     = create_tab_button(
-			0,
-			TAB_BUTTON_HEIGHT * 0,
-			TABS_WIDTH,
-			TAB_BUTTON_HEIGHT,
+			gui.Rect{rect.x, rect.y + TAB_BUTTON_HEIGHT * 0, TABS_WIDTH, TAB_BUTTON_HEIGHT},
 		),
 		metadata_button = create_tab_button(
-			0,
-			TAB_BUTTON_HEIGHT * 1,
-			TABS_WIDTH,
-			TAB_BUTTON_HEIGHT,
+			gui.Rect{rect.x, rect.y + TAB_BUTTON_HEIGHT * 1, TABS_WIDTH, TAB_BUTTON_HEIGHT},
 		),
 	}
 
@@ -45,6 +41,10 @@ set_metadata_icon :: proc(tabs: ^Tabs, icon: ^gui.Image) {
 	tabs.metadata_button.icon = icon
 }
 
+resize_tabs :: proc(tabs: ^Tabs, h: i32) {
+	tabs.rect.h = h
+}
+
 tick_tabs :: proc(tabs: ^Tabs, app: ^App, input: ^gui.Input) -> Clicked_Tab {
 	if tick_tab_button(&tabs.text_button, input) {
 		return .TEXT
@@ -58,7 +58,7 @@ tick_tabs :: proc(tabs: ^Tabs, app: ^App, input: ^gui.Input) -> Clicked_Tab {
 }
 
 render_tabs :: proc(tabs: ^Tabs, app: ^App) {
-	gui.draw_rect(app.window, 0, 0, TABS_WIDTH, app.window.height, TABS_BG_COLOR)
+	gui.draw_rect(app.window, tabs.rect, TABS_BG_COLOR)
 
 	render_tab_button(&tabs.text_button, app)
 	render_tab_button(&tabs.metadata_button, app)

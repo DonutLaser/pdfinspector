@@ -11,9 +11,9 @@ Draw_Instruction_Type :: enum {
 }
 
 Draw_Instruction_Rect :: struct {
-	x, y, width, height: i32,
-	color:               Color,
-	border_weight:       i32,
+	rect:          Rect,
+	color:         Color,
+	border_weight: i32,
 }
 
 Draw_Instruction_Text :: struct {
@@ -41,10 +41,7 @@ Draw_Instruction :: struct {
 
 draw_rect :: proc(
 	window: ^Window,
-	x: i32,
-	y: i32,
-	width: i32,
-	height: i32,
+	rect: Rect,
 	color: Color,
 	border_weight: i32 = 0,
 	z_index: i32 = 0,
@@ -53,7 +50,7 @@ draw_rect :: proc(
 		&window.render_queue,
 		Draw_Instruction{
 			it = .RECT,
-			data = Draw_Instruction_Rect{x, y, width, height, color, border_weight},
+			data = Draw_Instruction_Rect{rect, color, border_weight},
 			z_index = z_index,
 		},
 	)
@@ -78,7 +75,7 @@ draw_text :: proc(
 	)
 }
 
-draw_image :: proc(window: ^Window, img: ^Image, x: i32, y: i32, color: Color, z_index: i32 = 0) {
+draw_image :: proc(window: ^Window, img: ^Image, x, y: i32, color: Color, z_index: i32 = 0) {
 	append(
 		&window.render_queue,
 		Draw_Instruction{
@@ -121,17 +118,27 @@ render_rect :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Rect) {
 	sdl.SetRenderDrawColor(renderer, i.color.r, i.color.g, i.color.b, i.color.a)
 
 	if i.border_weight > 0 {
-		top := sdl.Rect{i.x, i.y, i.width, i.border_weight}
-		right := sdl.Rect{i.x + i.width - i.border_weight, i.y, i.border_weight, i.height}
-		bottom := sdl.Rect{i.x, i.y + i.height - i.border_weight, i.width, i.border_weight}
-		left := sdl.Rect{i.x, i.y, i.border_weight, i.height}
+		top := sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.border_weight}
+		right := sdl.Rect{
+			i.rect.x + i.rect.w - i.border_weight,
+			i.rect.y,
+			i.border_weight,
+			i.rect.h,
+		}
+		bottom := sdl.Rect{
+			i.rect.x,
+			i.rect.y + i.rect.h - i.border_weight,
+			i.rect.w,
+			i.border_weight,
+		}
+		left := sdl.Rect{i.rect.x, i.rect.y, i.border_weight, i.rect.h}
 
 		sdl.RenderFillRect(renderer, &top)
 		sdl.RenderFillRect(renderer, &right)
 		sdl.RenderFillRect(renderer, &bottom)
 		sdl.RenderFillRect(renderer, &left)
 	} else {
-		sdl.RenderFillRect(renderer, &sdl.Rect{i.x, i.y, i.width, i.height})
+		sdl.RenderFillRect(renderer, &sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.rect.h})
 	}
 
 	sdl.SetRenderDrawBlendMode(renderer, sdl.BlendMode.NONE)

@@ -14,21 +14,6 @@ Text :: struct {
 	allocated: bool,
 }
 
-is_point_in_rect :: proc(
-	rect_x: i32,
-	rect_y: i32,
-	rect_width: i32,
-	rect_height: i32,
-	x: i32,
-	y: i32,
-) -> bool {
-	return x >= rect_x && x <= rect_x + rect_width && y >= rect_y && y <= rect_y + rect_height
-}
-
-get_rect_center :: proc(x: i32, y: i32, width: i32, height: i32) -> (i32, i32) {
-	return x + width / 2, y + height / 2
-}
-
 @(private)
 print_sdl_error :: proc() {
 	err := sdl.GetError()
