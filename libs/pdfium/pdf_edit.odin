@@ -98,7 +98,6 @@ IMAGEOBJ_METADATA :: struct {
 
 @(default_calling_convention = "c")
 foreign lib {
-	// TODO
 	// Create a new PDF document.
 	//
 	// Returns a handle to a new document, or NULL on failure.
