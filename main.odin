@@ -39,7 +39,7 @@ main :: proc() {
 	if !ok {return}
 	defer gui.close_window(window)
 
-	gui.set_background_color(&window, 72, 72, 72, 255)
+	gui.set_background_color(&window, 0, 0, 0, 255)
 
 	application, app_ok := app.create_app(&window, args.filename)
 	if !app_ok {return}

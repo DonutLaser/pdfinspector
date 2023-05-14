@@ -33,14 +33,15 @@ tick_document_view :: proc(dv: ^Document_View, app: ^App, input: ^gui.Input) {
 }
 
 render_document_view :: proc(dv: ^Document_View, app: ^App) {
+	x: i32 = TABS_WIDTH + STRUCTURE_WIDTH
 	gui.draw_rect(
 		app.window,
-		322,
+		x,
 		0,
-		app.window.width - 322,
+		app.window.width - x,
 		app.window.height,
 		DOCUMENT_VIEW_BG_COLOR,
 	)
 
-	gui.draw_image(app.window, &dv.pages[0].image, 322, 0, gui.Color{255, 255, 255, 255})
+	gui.draw_image(app.window, &dv.pages[0].image, x, 0, gui.Color{255, 255, 255, 255})
 }
