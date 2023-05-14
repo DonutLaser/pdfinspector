@@ -26,7 +26,7 @@ close_image :: proc(image: ^Image) {
 }
 
 image_from_pdf_bitmap :: proc(bitmap: pdf.Bitmap, window: ^Window) -> (Image, bool) {
-	// Pdf bitmap is BGRA8888, but for some reason, here we need to specify ABGR888.
+	// Pdf bitmap is BGRA8888, but for some reason, here we need to specify ARGB8888.
 	// I have no idea why, maybe it has something to do with endianness, but only 
 	// this format works and produces accurate colors.
 	surface := sdl.CreateRGBSurfaceWithFormatFrom(
@@ -35,7 +35,7 @@ image_from_pdf_bitmap :: proc(bitmap: pdf.Bitmap, window: ^Window) -> (Image, bo
 		bitmap.height,
 		32,
 		bitmap.stride,
-		u32(sdl.PixelFormatEnum.ABGR8888),
+		u32(sdl.PixelFormatEnum.ARGB8888),
 	)
 	if surface == nil {
 		print_sdl_error()

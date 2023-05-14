@@ -31,16 +31,7 @@ get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	pdfium.bitmap_fill_rect(bitmap, 0, 0, width_px, height_px, 0xFFFFFFFF)
 
 	// Render to bitmap
-	pdfium.render_page_bitmap(
-		bitmap,
-		page,
-		0,
-		0,
-		width_px,
-		height_px,
-		0,
-		pdfium.REVERSE_BYTE_ORDER,
-	)
+	pdfium.render_page_bitmap(bitmap, page, 0, 0, width_px, height_px, 0, 0)
 
 	result := Bitmap {
 		data   = pdfium.bitmap_get_buffer(bitmap),
