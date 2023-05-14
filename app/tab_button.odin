@@ -105,7 +105,7 @@ render_tab_button :: proc(btn: ^Tab_Button, app: ^App) {
 			tooltip_x + TOOLTIP_PADDING,
 			tooltip_y + TOOLTIP_PADDING,
 			TOOLTIP_TEXT_COLOR,
-			778, // TODO: This should be the same as the tooltip background, but for some reason sorting is not stable(???), but it is(???)
+			777,
 		)
 	}
 }

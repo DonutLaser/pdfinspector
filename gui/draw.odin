@@ -91,7 +91,7 @@ draw_image :: proc(window: ^Window, img: ^Image, x: i32, y: i32, color: Color, z
 
 @(private)
 draw_render_queue :: proc(renderer: ^sdl.Renderer, queue: ^[dynamic]Draw_Instruction) {
-	slice.sort_by_cmp(
+	slice.stable_sort_by_cmp(
 		queue[:],
 		proc(i1: Draw_Instruction, i2: Draw_Instruction) -> slice.Ordering {
 			if i1.z_index < i2.z_index {return .Less}
