@@ -31,15 +31,14 @@ get_all_text_in_doc :: proc(doc: Document) -> string {
 
 		// TODO: figure out how to get utf-8 text and print it in utf-8
 		buffer := make([^]u16, len)
+		defer mem.free(bytes)
 		pdfium.text_get_text(text_page, 0, len, buffer)
 
 		// TODO: there has to be a better way to do this
 		bytes := make([^]u8, len)
+		defer mem.free(buffer)
 		utf16.decode_to_utf8(bytes[:len], buffer[:len])
 		result_pages[index] = strings.clone_from_bytes(bytes[:len])
-
-		mem.free(bytes)
-		mem.free(buffer)
 	}
 
 	result := strings.join(result_pages[:], "\n")
