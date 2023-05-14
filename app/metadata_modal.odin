@@ -1,10 +1,11 @@
 package app
 
-import "../gui"
 import "core:strings"
+import "core:fmt"
+import "../gui"
 
 Metadata_Field :: struct {
-	name:  string,
+	name:  cstring,
 	value: string,
 }
 
@@ -22,7 +23,7 @@ create_metadata_modal :: proc() -> Metadata_Modal {
 	return result
 }
 
-add_metadata_field :: proc(mm: ^Metadata_Modal, name: string, value: string) {
+add_metadata_field :: proc(mm: ^Metadata_Modal, name: cstring, value: string) {
 	// TODO: just hardcode the fields, no need to make the array dynamic
 	append(&mm.fields, Metadata_Field{name, value})
 }
@@ -47,43 +48,46 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 	gui.draw_rect(app.window, 0, 0, app.window.width, app.window.height, MODAL_OVERLAY_COLOR)
 
 	// TODO: this is a mess
-	field_count := i32(len(mm.fields))
-	height := font.size * field_count + METADATA_LINE_SPACING * (field_count - 1)
-	x, y := gui.get_rect_center(0, 0, app.window.width, app.window.height)
-	left, top := x - METADATA_MODAL_WIDTH / 2 - METADATA_PADDING, y - height / 2 - METADATA_PADDING
-	gui.draw_rect(
-		app.window,
-		left,
-		top,
-		METADATA_MODAL_WIDTH + METADATA_PADDING * 2,
-		height + METADATA_PADDING * 2,
-		METADATA_MODAL_BG_COLOR,
-	)
-	gui.draw_rect(
-		app.window,
-		left,
-		top,
-		METADATA_MODAL_WIDTH + METADATA_PADDING * 2,
-		height + METADATA_PADDING * 2,
-		METADATA_MODAL_BORDER_COLOR,
-		1,
-	)
+	line_count := i32(len(mm.fields))
+	width: i32 = METADATA_MODAL_WIDTH + METADATA_PADDING * 2
+	height: i32 =
+		line_count * font.size + METADATA_PADDING * 2 + (line_count - 1) * METADATA_LINE_SPACING
 
-	x, y = x - METADATA_MODAL_WIDTH / 2, y - height / 2
+	x, y := gui.get_rect_center(0, 0, app.window.width, app.window.height)
+	left, top := x - width / 2, y - height / 2
+	gui.draw_rect(app.window, left, top, width, height, METADATA_MODAL_BG_COLOR)
+
+	cursor_x, cursor_y := left + METADATA_PADDING, top + METADATA_PADDING
 	for field, index in mm.fields {
-		cname := strings.clone_to_cstring(field.name)
 		gui.draw_text(
 			app.window,
 			font,
-			gui.Text{data = cname, allocated = true},
-			x,
-			y,
+			gui.Text{data = field.name, allocated = false},
+			cursor_x,
+			cursor_y,
 			METADATA_MODAL_TEXT_COLOR,
 		)
 
-		y += font.size
+		cvalue := strings.clone_to_cstring(field.value)
+		truncated_value, truncated := gui.truncate_text(font, cvalue, 200)
+
+		value_width, _ := gui.measure_text(font, truncated_value)
+
+		gui.draw_text(
+			app.window,
+			font,
+			gui.Text{data = truncated_value, allocated = true},
+			left + width - METADATA_PADDING - value_width,
+			cursor_y,
+			METADATA_MODAL_TEXT_COLOR,
+		)
+
 		if index != len(mm.fields) - 1 {
-			y += METADATA_LINE_SPACING
+			cursor_y += METADATA_LINE_SPACING + font.size
+		}
+
+		if truncated {
+			delete(cvalue)
 		}
 	}
 }
