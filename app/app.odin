@@ -67,14 +67,15 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
 
 	metadata := pdf.get_doc_metadata(result.pdf_doc)
-	add_metadata_field(&result.metadata_modal, "Title", metadata.title)
-	add_metadata_field(&result.metadata_modal, "Author", metadata.author)
-	add_metadata_field(&result.metadata_modal, "Subject", metadata.subject)
-	add_metadata_field(&result.metadata_modal, "Keywords", metadata.keywords)
-	add_metadata_field(&result.metadata_modal, "Creator", metadata.creator)
-	add_metadata_field(&result.metadata_modal, "Producer", metadata.producer)
-	add_metadata_field(&result.metadata_modal, "CreationDate", metadata.creation_date)
-	add_metadata_field(&result.metadata_modal, "ModDate", metadata.mod_date)
+	defer pdf.free_doc_metadata(&metadata)
+	add_metadata_field(&result.metadata_modal, "Title", metadata.title, &result)
+	add_metadata_field(&result.metadata_modal, "Author", metadata.author, &result)
+	add_metadata_field(&result.metadata_modal, "Subject", metadata.subject, &result)
+	add_metadata_field(&result.metadata_modal, "Keywords", metadata.keywords, &result)
+	add_metadata_field(&result.metadata_modal, "Creator", metadata.creator, &result)
+	add_metadata_field(&result.metadata_modal, "Producer", metadata.producer, &result)
+	add_metadata_field(&result.metadata_modal, "CreationDate", metadata.creation_date, &result)
+	add_metadata_field(&result.metadata_modal, "ModDate", metadata.mod_date, &result)
 
 	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
 		bitmap, bitmap_ok := pdf.get_page_bitmap(result.pdf_doc, i)

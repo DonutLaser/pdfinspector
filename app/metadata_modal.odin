@@ -6,7 +6,7 @@ import "../gui"
 
 Metadata_Field :: struct {
 	name:  cstring,
-	value: string,
+	value: cstring,
 }
 
 Metadata_Modal :: struct {
@@ -23,9 +23,15 @@ create_metadata_modal :: proc() -> Metadata_Modal {
 	return result
 }
 
-add_metadata_field :: proc(mm: ^Metadata_Modal, name: cstring, value: string) {
-	// TODO: just hardcode the fields, no need to make the array dynamic
-	append(&mm.fields, Metadata_Field{name, value})
+add_metadata_field :: proc(mm: ^Metadata_Modal, name: cstring, value: string, app: ^App) {
+	cvalue := strings.clone_to_cstring(value)
+	truncated_value, truncated := gui.truncate_text(&app.fonts[14], cvalue, 200)
+
+	if truncated {
+		delete(cvalue)
+	}
+
+	append(&mm.fields, Metadata_Field{name, truncated_value})
 }
 
 tick_metadata_modal :: proc(mm: ^Metadata_Modal, input: ^gui.Input) {
@@ -68,15 +74,12 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 			METADATA_MODAL_TEXT_COLOR,
 		)
 
-		cvalue := strings.clone_to_cstring(field.value)
-		truncated_value, truncated := gui.truncate_text(font, cvalue, 200)
-
-		value_width, _ := gui.measure_text(font, truncated_value)
+		value_width, _ := gui.measure_text(font, field.value)
 
 		gui.draw_text(
 			app.window,
 			font,
-			gui.Text{data = truncated_value, allocated = true},
+			gui.Text{data = field.value, allocated = false},
 			left + width - METADATA_PADDING - value_width,
 			cursor_y,
 			METADATA_MODAL_TEXT_COLOR,
@@ -84,10 +87,6 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 
 		if index != len(mm.fields) - 1 {
 			cursor_y += METADATA_LINE_SPACING + font.size
-		}
-
-		if truncated {
-			delete(cvalue)
 		}
 	}
 }
