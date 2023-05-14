@@ -1,6 +1,5 @@
 package gui
 
-import "core:fmt"
 import sdl "vendor:sdl2"
 import img "vendor:sdl2/image"
 import "../pdf"
@@ -27,16 +26,16 @@ close_image :: proc(image: ^Image) {
 }
 
 image_from_pdf_bitmap :: proc(bitmap: pdf.Bitmap, window: ^Window) -> (Image, bool) {
-	surface := sdl.CreateRGBSurfaceFrom(
+	// Pdf bitmap is BGRA8888, but for some reason, here we need to specify ABGR888.
+	// I have no idea why, maybe it has something to do with endianness, but only 
+	// this format works and produces accurate colors.
+	surface := sdl.CreateRGBSurfaceWithFormatFrom(
 		bitmap.data,
 		bitmap.width,
 		bitmap.height,
 		32,
 		bitmap.stride,
-		0x0000ff00,
-		0x00ff0000,
-		0xff000000,
-		0x000000ff,
+		u32(sdl.PixelFormatEnum.ABGR8888),
 	)
 	if surface == nil {
 		print_sdl_error()

@@ -18,11 +18,9 @@ get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	// Get page size
 	page := pdfium.load_page(doc.data, index)
 	width_pts := pdfium.get_page_widthf(page)
-	width_px: i32 = 2480
-	// width_px := i32(width_pts / 72 * 300) // TODO: unhardcode these and explain
+	width_px := i32(width_pts / 72 * 96) // TODO: unhardcode these and explain
 	height_pts := pdfium.get_page_heightf(page)
-	height_px: i32 = 3508
-	// height_px := i32(height_pts / 72 * 300) // TODO: unhardcode these and explain
+	height_px := i32(height_pts / 72 * 96) // TODO: unhardcode these and explain
 
 	// Setup pdf
 	bitmap := pdfium.bitmap_create(width_px, height_px, 0)
@@ -33,7 +31,16 @@ get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	pdfium.bitmap_fill_rect(bitmap, 0, 0, width_px, height_px, 0xFFFFFFFF)
 
 	// Render to bitmap
-	pdfium.render_page_bitmap(bitmap, page, 0, 0, width_px, height_px, 0, 0)
+	pdfium.render_page_bitmap(
+		bitmap,
+		page,
+		0,
+		0,
+		width_px,
+		height_px,
+		0,
+		pdfium.REVERSE_BYTE_ORDER,
+	)
 
 	result := Bitmap {
 		data   = pdfium.bitmap_get_buffer(bitmap),
