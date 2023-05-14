@@ -2,6 +2,7 @@ package pdf
 
 import "core:strings"
 import "core:mem"
+import "core:fmt"
 import "core:unicode/utf16"
 import "../libs/pdfium"
 
@@ -23,8 +24,14 @@ get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
 	result.keywords = get_metadata_tag_value(doc.data, "Keywords")
 	result.creator = get_metadata_tag_value(doc.data, "Creator")
 	result.producer = get_metadata_tag_value(doc.data, "Producer")
-	result.creation_date = get_metadata_tag_value(doc.data, "CreationDate") // TODO: Parse into an ISO string for better readability
-	result.mod_date = get_metadata_tag_value(doc.data, "ModDate") // TODO: Parse into an ISO string for better readability
+
+	creation_date := get_metadata_tag_value(doc.data, "CreationDate")
+	defer delete(creation_date)
+	mod_date := get_metadata_tag_value(doc.data, "ModDate")
+	defer delete(mod_date)
+
+	result.creation_date = parse_date(creation_date)
+	result.mod_date = parse_date(mod_date)
 
 	return
 }
@@ -53,4 +60,17 @@ get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> string {
 	defer mem.free(dest)
 
 	return strings.clone_from_ptr(cast(^byte)dest, int(len))
+}
+
+@(private = "file")
+parse_date :: proc(str: string) -> string {
+	return fmt.aprintf(
+		"%s-%s-%s %s:%s:%s",
+		str[2:6],
+		str[6:8],
+		str[8:10],
+		str[10:12],
+		str[12:14],
+		str[14:16],
+	)
 }
