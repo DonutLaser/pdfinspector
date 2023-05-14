@@ -67,8 +67,6 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
 
 	metadata := pdf.get_doc_metadata(result.pdf_doc)
-	// TODO
-	// add_metadata_field(&result.metadata_modal, "Page count", metadata.title)
 	add_metadata_field(&result.metadata_modal, "Title", metadata.title)
 	add_metadata_field(&result.metadata_modal, "Author", metadata.author)
 	add_metadata_field(&result.metadata_modal, "Subject", metadata.subject)
