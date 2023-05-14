@@ -26,12 +26,20 @@ get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
 	result.producer = get_metadata_tag_value(doc.data, "Producer")
 
 	creation_date := get_metadata_tag_value(doc.data, "CreationDate")
-	defer delete(creation_date)
-	mod_date := get_metadata_tag_value(doc.data, "ModDate")
-	defer delete(mod_date)
+	if len(creation_date) != 2 {
+		result.creation_date = parse_date(creation_date)
+		delete(creation_date)
+	} else {
+		result.creation_date = creation_date
+	}
 
-	result.creation_date = parse_date(creation_date)
-	result.mod_date = parse_date(mod_date)
+	mod_date := get_metadata_tag_value(doc.data, "ModDate")
+	if len(mod_date) != 2 {
+		result.mod_date = parse_date(mod_date)
+		delete(mod_date)
+	} else {
+		result.mod_date = mod_date
+	}
 
 	return
 }
