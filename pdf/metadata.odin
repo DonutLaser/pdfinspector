@@ -2,6 +2,7 @@ package pdf
 
 import "core:strings"
 import "core:mem"
+import "core:unicode/utf16"
 import "../libs/pdfium"
 
 Metadata :: struct {
@@ -45,8 +46,13 @@ free_doc_metadata :: proc(metadata: ^Metadata) {
 get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> string {
 	len := pdfium.get_meta_text(doc, tag, nil, 0)
 
-	buffer := mem.alloc(cast(int)len)
-	_ = pdfium.get_meta_text(doc, tag, cast(rawptr)buffer, len)
+	src := make([^]u16, len)
+	_ = pdfium.get_meta_text(doc, tag, cast(rawptr)src, len)
+	defer mem.free(src)
 
-	return strings.clone_from_ptr(cast(^byte)buffer, cast(int)len)
+	dest := make([^]u8, len)
+	utf16.decode_to_utf8(dest[:len], src[:len])
+	defer mem.free(dest)
+
+	return strings.clone_from_ptr(cast(^byte)dest, int(len))
 }
