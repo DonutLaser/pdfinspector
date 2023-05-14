@@ -17,14 +17,14 @@ Font_To_Load :: struct {
 }
 
 App :: struct {
-	window:         ^gui.Window,
-	pdf_doc:        pdf.Document,
-	tabs:           Tabs,
-	structure:      Structure,
-	document_view:  Document_View,
-	metadata_modal: Metadata_Modal,
-	icons:          map[string]gui.Image,
-	fonts:          map[i32]gui.Font,
+	window:        ^gui.Window,
+	pdf_doc:       pdf.Document,
+	tabs:          Tabs,
+	structure:     Structure,
+	document_view: Document_View,
+	modal_manager: Modal_Manager,
+	icons:         map[string]gui.Image,
+	fonts:         map[i32]gui.Font,
 }
 
 create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
@@ -36,14 +36,14 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	}
 
 	result := App {
-		window         = window,
-		pdf_doc        = pdf_doc,
-		tabs           = create_tabs(),
-		structure      = create_structure(),
-		document_view  = create_document_view(pdf_doc.page_count),
-		metadata_modal = create_metadata_modal(),
-		icons          = make(map[string]gui.Image),
-		fonts          = make(map[i32]gui.Font),
+		window        = window,
+		pdf_doc       = pdf_doc,
+		tabs          = create_tabs(),
+		structure     = create_structure(),
+		document_view = create_document_view(pdf_doc.page_count),
+		modal_manager = create_modal_manager(),
+		icons         = make(map[string]gui.Image),
+		fonts         = make(map[i32]gui.Font),
 	}
 
 	images_to_load := []Image_To_Load{
@@ -66,16 +66,17 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	set_text_icon(&result.tabs, &result.icons["text.png"])
 	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
 
+	metadata_modal := &result.modal_manager.metadata_modal
 	metadata := pdf.get_doc_metadata(result.pdf_doc)
 	defer pdf.free_doc_metadata(&metadata)
-	add_metadata_field(&result.metadata_modal, "Title", metadata.title, &result)
-	add_metadata_field(&result.metadata_modal, "Author", metadata.author, &result)
-	add_metadata_field(&result.metadata_modal, "Subject", metadata.subject, &result)
-	add_metadata_field(&result.metadata_modal, "Keywords", metadata.keywords, &result)
-	add_metadata_field(&result.metadata_modal, "Creator", metadata.creator, &result)
-	add_metadata_field(&result.metadata_modal, "Producer", metadata.producer, &result)
-	add_metadata_field(&result.metadata_modal, "CreationDate", metadata.creation_date, &result)
-	add_metadata_field(&result.metadata_modal, "ModDate", metadata.mod_date, &result)
+	add_metadata_field(metadata_modal, "Title", metadata.title, &result)
+	add_metadata_field(metadata_modal, "Author", metadata.author, &result)
+	add_metadata_field(metadata_modal, "Subject", metadata.subject, &result)
+	add_metadata_field(metadata_modal, "Keywords", metadata.keywords, &result)
+	add_metadata_field(metadata_modal, "Creator", metadata.creator, &result)
+	add_metadata_field(metadata_modal, "Producer", metadata.producer, &result)
+	add_metadata_field(metadata_modal, "CreationDate", metadata.creation_date, &result)
+	add_metadata_field(metadata_modal, "ModDate", metadata.mod_date, &result)
 
 	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
 		bitmap, bitmap_ok := pdf.get_page_bitmap(result.pdf_doc, i)
@@ -96,16 +97,15 @@ destroy_app :: proc(app: ^App) {
 }
 
 tick :: proc(app: ^App, input: ^gui.Input) {
-	// TODO: figure out a better way for the modal to consume all input
-	if !app.metadata_modal.is_visible {
+	if app.modal_manager.open_modal == .NONE {
 		clicked_tab := tick_tabs(&app.tabs, app, input)
 		#partial switch clicked_tab {
 		case .METADATA:
-			app.metadata_modal.is_visible = true
+			open_modal(&app.modal_manager, .METADATA)
 		}
 	}
 
-	tick_metadata_modal(&app.metadata_modal, input)
+	tick_modal_manager(&app.modal_manager, input)
 }
 
 render :: proc(app: ^App) {
@@ -113,5 +113,5 @@ render :: proc(app: ^App) {
 	render_structure(&app.structure, app)
 	render_document_view(&app.document_view, app)
 
-	render_metadata_modal(&app.metadata_modal, app)
+	render_modal_manager(&app.modal_manager, app)
 }

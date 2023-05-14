@@ -61,8 +61,8 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 
 	x, y := gui.get_rect_center(0, 0, app.window.width, app.window.height)
 	left, top := x - width / 2, y - height / 2
-	gui.draw_rect(app.window, left, top, width, height, METADATA_MODAL_BG_COLOR)
-	gui.draw_rect(app.window, left, top, width, height, METADATA_MODAL_BORDER_COLOR, 1)
+	gui.draw_rect(app.window, left, top, width, height, MODAL_BG_COLOR)
+	gui.draw_rect(app.window, left, top, width, height, MODAL_BORDER_COLOR, 1)
 
 	cursor_x, cursor_y := left + METADATA_PADDING, top + METADATA_PADDING
 	for field, index in mm.fields {
