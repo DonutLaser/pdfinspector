@@ -47,7 +47,6 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	}
 
 	images_to_load := []Image_To_Load{
-		Image_To_Load{"./assets/icons/structure.png", "structure.png"},
 		Image_To_Load{"./assets/icons/text.png", "text.png"},
 		Image_To_Load{"./assets/icons/metadata.png", "metadata.png"},
 	}
@@ -64,7 +63,6 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 		result.fonts[f.size] = font
 	}
 
-	set_structure_icon(&result.tabs, &result.icons["structure.png"])
 	set_text_icon(&result.tabs, &result.icons["text.png"])
 	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
 
