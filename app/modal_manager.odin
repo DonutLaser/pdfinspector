@@ -5,10 +5,12 @@ import "../gui"
 Modal_Kind :: enum {
 	NONE,
 	METADATA,
+	TEXT,
 }
 
 Modal_Manager :: struct {
 	metadata_modal: Metadata_Modal,
+	text_modal:     Text_Modal,
 	open_modal:     Modal_Kind,
 }
 
@@ -27,6 +29,9 @@ open_modal :: proc(mm: ^Modal_Manager, kind: Modal_Kind) {
 	case .METADATA:
 		mm.metadata_modal.is_visible = true
 		mm.open_modal = .METADATA
+	case .TEXT:
+		mm.text_modal.is_visible = true
+		mm.open_modal = .TEXT
 	}
 }
 
@@ -45,6 +50,13 @@ tick_modal_manager :: proc(mm: ^Modal_Manager, input: ^gui.Input) {
 		} else {
 			tick_metadata_modal(&mm.metadata_modal, input)
 		}
+	case .TEXT:
+		if should_close {
+			mm.text_modal.is_visible = false
+			mm.open_modal = .NONE
+		} else {
+			tick_text_modal(&mm.text_modal, input)
+		}
 	}
 }
 
@@ -56,5 +68,7 @@ render_modal_manager :: proc(mm: ^Modal_Manager, app: ^App) {
 	#partial switch mm.open_modal {
 	case .METADATA:
 		render_metadata_modal(&mm.metadata_modal, app)
+	case .TEXT:
+		render_text_modal(&mm.text_modal, app)
 	}
 }

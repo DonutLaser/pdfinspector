@@ -102,6 +102,8 @@ tick :: proc(app: ^App, input: ^gui.Input) {
 		#partial switch clicked_tab {
 		case .METADATA:
 			open_modal(&app.modal_manager, .METADATA)
+		case .TEXT:
+			open_modal(&app.modal_manager, .TEXT)
 		}
 	}
 
