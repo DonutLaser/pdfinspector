@@ -1,6 +1,7 @@
 package gui
 
 import "core:fmt"
+import "core:strings"
 import ttf "vendor:sdl2/ttf"
 
 Font :: struct {
@@ -32,4 +33,22 @@ close_font :: proc(font: ^Font) {
 
 measure_text :: proc(font: ^Font, text: cstring) -> (i32, i32) {
 	return i32(len(text)) * font.char_width, font.size
+}
+
+truncate_text :: proc(font: ^Font, text: cstring, max_width: i32) -> (cstring, bool) {
+	width, _ := measure_text(font, text)
+
+	if width <= max_width {
+		return text, false
+	}
+
+	// -3, because we want the string to have ellipsis at the end, so we need to get rid of 3 extra characters
+	retain_count := max_width / font.char_width - 3
+	str := string(text)
+	str = str[:retain_count]
+
+	result_str := fmt.aprintf("%s...", str)
+	defer delete(result_str)
+
+	return strings.clone_to_cstring(result_str), true
 }
