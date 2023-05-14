@@ -6,7 +6,6 @@ import "core:unicode/utf16"
 import "../libs/pdfium"
 
 Metadata :: struct {
-	page_count:    u16,
 	title:         string,
 	author:        string,
 	subject:       string,
@@ -18,7 +17,6 @@ Metadata :: struct {
 }
 
 get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
-	result.page_count = cast(u16)doc.page_count
 	result.title = get_metadata_tag_value(doc.data, "Title")
 	result.author = get_metadata_tag_value(doc.data, "Author")
 	result.subject = get_metadata_tag_value(doc.data, "Subject")
