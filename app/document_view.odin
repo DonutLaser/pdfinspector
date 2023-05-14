@@ -34,14 +34,22 @@ tick_document_view :: proc(dv: ^Document_View, app: ^App, input: ^gui.Input) {
 
 render_document_view :: proc(dv: ^Document_View, app: ^App) {
 	x: i32 = TABS_WIDTH + STRUCTURE_WIDTH
-	gui.draw_rect(
-		app.window,
-		x,
-		0,
-		app.window.width - x,
-		app.window.height,
-		DOCUMENT_VIEW_BG_COLOR,
-	)
+	width := app.window.width - x
+	gui.draw_rect(app.window, x, 0, width, app.window.height, DOCUMENT_VIEW_BG_COLOR)
 
-	gui.draw_image(app.window, &dv.pages[0].image, x, 0, gui.Color{255, 255, 255, 255})
+	// TODO: do not draw image if no pixels of it are visible
+	start_y: i32 = 0
+	for page in dv.pages {
+		image := &dv.pages[0].image
+		image_x, image_y: i32 = x + width / 2 - image.width / 2, start_y
+		gui.draw_image(
+			app.window,
+			&dv.pages[0].image,
+			image_x,
+			image_y,
+			gui.Color{255, 255, 255, 255},
+		)
+
+		start_y += image.height
+	}
 }
