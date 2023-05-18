@@ -60,12 +60,12 @@ get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> string {
 	len := pdfium.get_meta_text(doc, tag, nil, 0)
 
 	src := make([^]u16, len)
-	_ = pdfium.get_meta_text(doc, tag, cast(rawptr)src, len)
 	defer mem.free(src)
+	_ = pdfium.get_meta_text(doc, tag, cast(rawptr)src, len)
 
 	dest := make([^]u8, len)
-	utf16.decode_to_utf8(dest[:len], src[:len])
 	defer mem.free(dest)
+	utf16.decode_to_utf8(dest[:len], src[:len])
 
 	return strings.clone_from_ptr(cast(^byte)dest, int(len))
 }

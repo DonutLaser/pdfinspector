@@ -54,6 +54,7 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 		fonts         = make(map[i32]gui.Font),
 	}
 
+	// Load icons
 	images_to_load := []Image_To_Load{
 		Image_To_Load{"./assets/icons/text.png", "text.png"},
 		Image_To_Load{"./assets/icons/metadata.png", "metadata.png"},
@@ -64,6 +65,7 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 		result.icons[image.name] = icon
 	}
 
+	// Load fonts
 	fonts_to_load := []Font_To_Load{Font_To_Load{"./assets/fonts/consola.ttf", 14}}
 	for f in fonts_to_load {
 		font, ok := gui.load_font(f.path, f.size)
@@ -74,6 +76,7 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	set_text_icon(&result.tabs, &result.icons["text.png"])
 	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
 
+	// Load pdf metadata
 	metadata_modal := &result.modal_manager.metadata_modal
 	metadata := pdf.get_doc_metadata(result.pdf_doc)
 	defer pdf.free_doc_metadata(&metadata)
@@ -86,6 +89,11 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	add_metadata_field(metadata_modal, "CreationDate", metadata.creation_date, &result)
 	add_metadata_field(metadata_modal, "ModDate", metadata.mod_date, &result)
 
+	// Load pdf text
+	text_modal := &result.modal_manager.text_modal
+	text_modal.text = pdf.get_all_text_in_doc(result.pdf_doc)
+
+	// Load pdf page bitmaps
 	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
 		bitmap, bitmap_ok := pdf.get_page_bitmap(result.pdf_doc, i)
 		if !bitmap_ok {return App{}, false}

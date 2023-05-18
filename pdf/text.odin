@@ -6,7 +6,7 @@ import "core:mem"
 import "core:unicode/utf16"
 import "../libs/pdfium"
 
-get_all_text_in_doc :: proc(doc: Document) -> string {
+get_all_text_in_doc :: proc(doc: Document) -> cstring {
 	// We first figure out the total length of text in the document...
 	text_pages := make([dynamic]^pdfium.TEXTPAGE, doc.page_count)
 	defer delete(text_pages)
@@ -42,12 +42,18 @@ get_all_text_in_doc :: proc(doc: Document) -> string {
 	}
 
 	result := strings.join(result_pages[:], "\n")
+	defer {
+		for page in result_pages {
+			delete(page)
+		}
+	}
+	defer delete(result)
 
 	for text_page in text_pages {
 		pdfium.text_close_page(text_page)
 	}
 
-	return result
+	return strings.clone_to_cstring(result)
 }
 
 free_text :: proc(text: string) {

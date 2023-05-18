@@ -1,5 +1,6 @@
 package app
 
+import "core:fmt"
 import "../gui"
 
 COPY_BTN_WIDTH :: 60
@@ -8,6 +9,7 @@ Text_Modal :: struct {
 	rect:        gui.Rect,
 	copy_button: Button,
 	is_visible:  bool,
+	text:        cstring,
 }
 
 create_text_modal :: proc(center_x, center_y: i32) -> Text_Modal {
@@ -71,6 +73,18 @@ render_text_modal :: proc(tm: ^Text_Modal, app: ^App) {
 
 	gui.draw_rect(app.window, tm.rect, MODAL_BG_COLOR)
 	gui.draw_rect(app.window, tm.rect, MODAL_BORDER_COLOR, 1)
+
+	// if tm.text != "" {
+	font := &app.fonts[14]
+	gui.draw_text(
+		app.window,
+		font,
+		gui.Text{data = tm.text, allocated = false},
+		tm.rect.x + TEXT_PADDING,
+		tm.rect.y + TEXT_PADDING,
+		TEXT_MODAL_TEXT_COLOR,
+	)
+	// }
 
 	render_button(&tm.copy_button, app)
 }
