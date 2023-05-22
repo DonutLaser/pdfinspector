@@ -1,12 +1,16 @@
 package pdf
 
 import "core:strings"
-import "core:fmt"
 import "core:mem"
 import "core:unicode/utf16"
 import "../libs/pdfium"
 
-get_all_text_in_doc :: proc(doc: Document) -> cstring {
+Pdf_Text :: struct {
+	data: [^]u16,
+	size: i32,
+}
+
+get_all_text_in_doc :: proc(doc: Document) -> Pdf_Text {
 	// We first figure out the total length of text in the document...
 	text_pages := make([dynamic]^pdfium.TEXTPAGE, doc.page_count)
 	defer delete(text_pages)
@@ -25,37 +29,25 @@ get_all_text_in_doc :: proc(doc: Document) -> cstring {
 	}
 
 	// ... and then we actually load the text for each page. That's why we collected the text pages...
-	result_pages := make([dynamic]string, doc.page_count)
+	result := make([^]u16, total_len)
+	start: i32 = 0
 	for text_page, index in text_pages {
 		len := text_lengths[index]
 
-		// TODO: figure out how to get utf-8 text and print it in utf-8
 		buffer := make([^]u16, len)
 		defer mem.free(buffer)
 		pdfium.text_get_text(text_page, 0, len, buffer)
 
-		// TODO: there has to be a better way to do this
-		bytes := make([^]u8, len)
-		defer mem.free(bytes)
-		utf16.decode_to_utf8(bytes[:len], buffer[:len])
-		result_pages[index] = strings.clone_from_bytes(bytes[:len])
-	}
-
-	result := strings.join(result_pages[:], "\n")
-	defer {
-		for page in result_pages {
-			delete(page)
+		for i: i32 = start; i < len; i += 1 {
+			result[i] = buffer[i]
 		}
-	}
-	defer delete(result)
 
-	for text_page in text_pages {
-		pdfium.text_close_page(text_page)
+		start += len
 	}
 
-	return strings.clone_to_cstring(result)
+	return Pdf_Text{data = result, size = total_len}
 }
 
-free_text :: proc(text: string) {
-	delete(text)
+free_text :: proc(text: ^Pdf_Text) {
+	mem.free(text.data)
 }

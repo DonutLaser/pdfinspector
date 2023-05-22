@@ -14,6 +14,11 @@ Text :: struct {
 	allocated: bool,
 }
 
+Text_u16 :: struct {
+	data: [^]u16,
+	size: i32,
+}
+
 @(private)
 print_sdl_error :: proc() {
 	err := sdl.GetError()

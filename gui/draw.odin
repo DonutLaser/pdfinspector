@@ -1,12 +1,14 @@
 package gui
 
 import "core:slice"
+import "core:fmt"
 import sdl "vendor:sdl2"
 import ttf "vendor:sdl2/ttf"
 
 Draw_Instruction_Type :: enum {
 	RECT,
 	TEXT,
+	TEXT_U16,
 	IMAGE,
 }
 
@@ -18,8 +20,21 @@ Draw_Instruction_Rect :: struct {
 
 Draw_Instruction_Text :: struct {
 	font:  ^Font,
-	text:  Text,
-	x, y:  i32,
+	text:  union {
+		Text,
+		Text_u16,
+	},
+	rect:  Rect,
+	color: Color,
+}
+
+Draw_Instruction_Text_Rect :: struct {
+	font:  ^Font,
+	text:  union {
+		Text,
+		Text_u16,
+	},
+	rect:  Rect,
 	color: Color,
 }
 
@@ -34,6 +49,7 @@ Draw_Instruction :: struct {
 	data:    union {
 		Draw_Instruction_Rect,
 		Draw_Instruction_Text,
+		Draw_Instruction_Text_Rect,
 		Draw_Instruction_Image,
 	},
 	z_index: i32,
@@ -60,8 +76,7 @@ draw_text :: proc(
 	window: ^Window,
 	font: ^Font,
 	text: Text,
-	x: i32,
-	y: i32,
+	rect: Rect,
 	color: Color,
 	z_index: i32 = 0,
 ) {
@@ -69,10 +84,29 @@ draw_text :: proc(
 		&window.render_queue,
 		Draw_Instruction{
 			it = .TEXT,
-			data = Draw_Instruction_Text{font, text, x, y, color},
+			data = Draw_Instruction_Text{font, text, rect, color},
 			z_index = z_index,
 		},
 	)
+}
+
+draw_text_u16 :: proc(
+	window: ^Window,
+	font: ^Font,
+	text: Text_u16,
+	rect: Rect,
+	color: Color,
+	z_index: i32 = 0,
+) {
+	append(
+		&window.render_queue,
+		Draw_Instruction{
+			it = .TEXT_U16,
+			data = Draw_Instruction_Text{font, text, rect, color},
+			z_index = z_index,
+		},
+	)
+
 }
 
 draw_image :: proc(window: ^Window, img: ^Image, x, y: i32, color: Color, z_index: i32 = 0) {
@@ -103,6 +137,8 @@ draw_render_queue :: proc(renderer: ^sdl.Renderer, queue: ^[dynamic]Draw_Instruc
 			render_rect(renderer, instruction.data.(Draw_Instruction_Rect))
 		case .TEXT:
 			render_text(renderer, instruction.data.(Draw_Instruction_Text))
+		case .TEXT_U16:
+			render_text_u16(renderer, instruction.data.(Draw_Instruction_Text))
 		case .IMAGE:
 			render_image(renderer, instruction.data.(Draw_Instruction_Image))
 		}
@@ -146,9 +182,10 @@ render_rect :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Rect) {
 
 @(private = "file")
 render_text :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Text) {
+	txt := i.text.(Text)
 	surface := ttf.RenderUTF8_Blended(
 		i.font.instance,
-		i.text.data,
+		txt.data,
 		sdl.Color{i.color.r, i.color.g, i.color.b, i.color.a},
 	)
 	defer sdl.FreeSurface(surface)
@@ -156,14 +193,40 @@ render_text :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Text) {
 	texture := sdl.CreateTextureFromSurface(renderer, surface)
 	defer sdl.DestroyTexture(texture)
 
-	text_width, text_height := measure_text(i.font, i.text.data)
-	rect := sdl.Rect{i.x, i.y, text_width, text_height}
+	rect := sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.rect.h}
+	if i.rect.w == -1 || i.rect.h == -1 {
+		text_width, text_height := measure_text(i.font, txt.data)
+		rect = sdl.Rect{i.rect.x, i.rect.y, text_width, text_height}
+	}
 
 	sdl.RenderCopy(renderer, texture, nil, &rect)
 
-	if (i.text.allocated) {
-		delete(i.text.data)
+	if (txt.allocated) {
+		delete(txt.data)
 	}
+}
+
+@(private = "file")
+render_text_u16 :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Text) {
+	txt := i.text.(Text_u16)
+	surface := ttf.RenderUNICODE_Blended_Wrapped(
+		i.font.instance,
+		txt.data,
+		sdl.Color{i.color.r, i.color.g, i.color.b, i.color.a},
+		u32(i.rect.w),
+	)
+	defer sdl.FreeSurface(surface)
+
+	texture := sdl.CreateTextureFromSurface(renderer, surface)
+	defer sdl.DestroyTexture(texture)
+
+	rect := sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.rect.h}
+	if i.rect.w == -1 || i.rect.h == -1 {
+		// text_width, text_height := measure_text(i.font, txt.data)
+		// rect = sdl.Rect{i.rect.x, i.rect.y, text_width, text_height}
+	}
+
+	sdl.RenderCopy(renderer, texture, &sdl.Rect{0, 0, i.rect.w, i.rect.h}, &rect)
 }
 
 @(private = "file")

@@ -35,22 +35,22 @@ Page :: struct {
 Object :: struct {
 	kind: Object_Kind,
 	data: union {
-		TextObject,
-		PathObject,
-		ImageObject,
+		Text_Object,
+		Path_Object,
+		Image_Object,
 	},
 }
 
-TextObject :: struct {
+Text_Object :: struct {
 	mode: Text_Render_Mode,
 	text: string,
 	size: f32,
 	font: Font,
 }
 
-PathObject :: struct {}
+Path_Object :: struct {}
 
-ImageObject :: struct {}
+Image_Object :: struct {}
 
 Annotation :: struct {}
 
@@ -114,7 +114,7 @@ free_document_structure :: proc(structure: [dynamic]Page) {
 		for obj in page.objects {
 			#partial switch obj.kind {
 			case .TEXT:
-				free_text_object_data(obj.data.(TextObject))
+				free_text_object_data(obj.data.(Text_Object))
 			case:
 				panic("Unreachable")
 			}
@@ -131,8 +131,8 @@ free_document_structure :: proc(structure: [dynamic]Page) {
 extract_text_object_data :: proc(
 	text_page: ^pdfium.TEXTPAGE,
 	text_obj: ^pdfium.PAGEOBJECT,
-) -> TextObject {
-	result := TextObject{}
+) -> Text_Object {
+	result := Text_Object{}
 
 	mode := pdfium.textobj_get_text_render_mode(text_obj)
 	result.mode = pdfium_text_render_mode_to_text_render_mode(mode)
@@ -187,7 +187,7 @@ extract_font_data :: proc(text_obj: ^pdfium.PAGEOBJECT, size: f32) -> Font {
 }
 
 @(private = "file")
-free_text_object_data :: proc(text_obj: TextObject) {
+free_text_object_data :: proc(text_obj: Text_Object) {
 	delete(text_obj.text)
 }
 

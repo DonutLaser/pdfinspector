@@ -71,8 +71,7 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 			app.window,
 			font,
 			gui.Text{data = field.name, allocated = false},
-			cursor_x,
-			cursor_y,
+			gui.Rect{cursor_x, cursor_y, -1, -1},
 			METADATA_MODAL_TEXT_COLOR,
 		)
 
@@ -82,8 +81,7 @@ render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
 			app.window,
 			font,
 			gui.Text{data = field.value, allocated = false},
-			left + width - METADATA_PADDING - value_width,
-			cursor_y,
+			gui.Rect{left + width - METADATA_PADDING - value_width, cursor_y, -1, -1},
 			METADATA_MODAL_TEXT_COLOR,
 		)
 

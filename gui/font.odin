@@ -35,6 +35,10 @@ measure_text :: proc(font: ^Font, text: cstring) -> (i32, i32) {
 	return i32(len(text)) * font.char_width, font.size
 }
 
+measure_text_u16 :: proc(font: ^Font, text: Text_u16) -> (i32, i32) {
+	return text.size * font.char_width, font.size
+}
+
 truncate_text :: proc(font: ^Font, text: cstring, max_width: i32) -> (cstring, bool) {
 	width, _ := measure_text(font, text)
 

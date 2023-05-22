@@ -101,8 +101,7 @@ render_tab_button :: proc(btn: ^Tab_Button, app: ^App) {
 			app.window,
 			font,
 			gui.Text{btn.tooltip, false},
-			tooltip_x + TOOLTIP_PADDING,
-			tooltip_y + TOOLTIP_PADDING,
+			gui.Rect{tooltip_x + TOOLTIP_PADDING, tooltip_y + TOOLTIP_PADDING, -1, -1},
 			TOOLTIP_TEXT_COLOR,
 			777,
 		)

@@ -50,6 +50,6 @@ render_button :: proc(btn: ^Button, app: ^App) {
 		width, height := gui.measure_text(font, btn.text)
 		x, y := center_x - width / 2, center_y - height / 2
 
-		gui.draw_text(app.window, font, gui.Text{btn.text, false}, x, y, BUTTON_TEXT_COLOR)
+		gui.draw_text(app.window, font, gui.Text{btn.text, false}, gui.Rect{x, y, -1, -1}, BUTTON_TEXT_COLOR)
 	}
 }
