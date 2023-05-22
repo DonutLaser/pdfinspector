@@ -28,6 +28,7 @@ get_all_text_in_doc :: proc(doc: Document) -> Pdf_Text {
 		total_len += text_lengths[i]
 	}
 
+
 	// ... and then we actually load the text for each page. That's why we collected the text pages...
 	result := make([^]u16, total_len)
 	start: i32 = 0
@@ -38,8 +39,8 @@ get_all_text_in_doc :: proc(doc: Document) -> Pdf_Text {
 		defer mem.free(buffer)
 		pdfium.text_get_text(text_page, 0, len, buffer)
 
-		for i: i32 = start; i < len; i += 1 {
-			result[i] = buffer[i]
+		for i: i32 = start; i < start + len; i += 1 {
+			result[i] = buffer[i - start]
 		}
 
 		start += len
