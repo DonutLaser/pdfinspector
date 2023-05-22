@@ -55,7 +55,13 @@ render_text_modal :: proc(tm: ^Text_Modal, app: ^App) {
 	gui.draw_rect(app.window, tm.rect, MODAL_BG_COLOR)
 	gui.draw_rect(app.window, tm.rect, MODAL_BORDER_COLOR, 1)
 
-	gui.clip_rect(app.window, tm.rect)
-	gui.draw_image(app.window, &tm.text, tm.rect.x, tm.rect.y, TEXT_MODAL_TEXT_COLOR)
+	text_rect := gui.Rect{
+		tm.rect.x + TEXT_PADDING,
+		tm.rect.y + TEXT_PADDING,
+		tm.rect.w - TEXT_PADDING * 2,
+		tm.rect.h - TEXT_PADDING * 2,
+	}
+	gui.clip_rect(app.window, text_rect)
+	gui.draw_image(app.window, &tm.text, text_rect.x, text_rect.y, TEXT_MODAL_TEXT_COLOR)
 	gui.unclip_rect(app.window)
 }

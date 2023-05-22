@@ -93,7 +93,12 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	text_modal := &result.modal_manager.text_modal
 	pdf_text := pdf.get_all_text_in_doc(result.pdf_doc)
 	defer pdf.free_text(&pdf_text)
-	img, img_ok := gui.image_from_pdf_text(pdf_text, &result.fonts[14], TEXT_MODAL_WIDTH, window)
+	img, img_ok := gui.image_from_pdf_text(
+		pdf_text,
+		&result.fonts[14],
+		TEXT_MODAL_WIDTH - TEXT_PADDING * 2,
+		window,
+	)
 	if !img_ok {
 		return App{}, false
 	}
