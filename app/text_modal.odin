@@ -4,6 +4,8 @@ import "core:fmt"
 import "../gui"
 import "../pdf"
 
+SCROLL_SPEED :: 20
+
 Text_Modal :: struct {
 	rect:       gui.Rect,
 	y_offset:   i32,
