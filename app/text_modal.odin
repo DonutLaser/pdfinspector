@@ -47,11 +47,16 @@ tick_text_modal :: proc(tm: ^Text_Modal, input: ^gui.Input) {
 	if input.escape == .JUST_PRESSED || input.rmb == .JUST_PRESSED {
 		tm.is_visible = false
 	} else {
-		if input.scroll_y != 0 {
-			tm.y_offset += (input.scroll_y * SCROLL_SPEED)
-			if tm.y_offset > 0 {
-				tm.y_offset = 0
+		text_rect_height: i32 = TEXT_MODAL_HEIGHT - TEXT_PADDING * 2
+		if input.scroll_y != 0 && tm.text.height > text_rect_height {
+			new_offset := tm.y_offset + (input.scroll_y * SCROLL_SPEED)
+			if new_offset > 0 {
+				new_offset = 0
+			} else if -new_offset + text_rect_height > tm.text.height {
+				new_offset = text_rect_height - tm.text.height
 			}
+
+			tm.y_offset = new_offset
 		}
 	}
 }
