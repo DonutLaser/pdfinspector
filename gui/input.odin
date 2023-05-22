@@ -140,21 +140,18 @@ key_to_char :: proc(key: sdl.Keycode, mod: sdl.Keymod) -> byte {
 
 @(private)
 update_input :: proc(input: ^Input) {
-	// TODO: do something to make this more scalable
-	if input.lmb == .JUST_RELEASED {input.lmb = .RELEASED}
-	if input.lmb == .JUST_PRESSED {input.lmb = .PRESSED}
+	input.lmb = update_input_button(input.lmb)
+	input.rmb = update_input_button(input.rmb)
 
-	if input.rmb == .JUST_RELEASED {input.rmb = .RELEASED}
-	if input.rmb == .JUST_PRESSED {input.rmb = .PRESSED}
-
-	if input.ctrl == .JUST_RELEASED {input.ctrl = .RELEASED}
-	if input.ctrl == .JUST_PRESSED {input.ctrl = .PRESSED}
-
-	if input.alt == .JUST_RELEASED {input.alt = .RELEASED}
-	if input.alt == .JUST_PRESSED {input.alt = .PRESSED}
-
-	if input.shift == .JUST_RELEASED {input.shift = .RELEASED}
-	if input.shift == .JUST_PRESSED {input.shift = .PRESSED}
+	input.ctrl = update_input_button(input.ctrl)
+	input.alt = update_input_button(input.alt)
+	input.shift = update_input_button(input.shift)
 
 	input.scroll_y = 0
+}
+
+update_input_button :: proc(btn: Button_State) -> Button_State {
+	if btn == .JUST_RELEASED {return .RELEASED}
+	if btn == .JUST_PRESSED {return .PRESSED}
+	return btn
 }
