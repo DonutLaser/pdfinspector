@@ -1,5 +1,6 @@
 package pdf
 
+import "core:fmt"
 import "../libs/pdfium"
 
 DPI :: 96 // Usually, screen DPI and we do want to render on a screen, so...
@@ -13,7 +14,11 @@ Bitmap :: struct {
 
 get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	if index >= doc.page_count {
-		// TODO: print error
+		fmt.eprintf(
+			"Error: Cannot get page %d bitmap, there are only %d pages in the document",
+			index,
+			doc.page_count,
+		)
 		return Bitmap{}, false
 	}
 
@@ -27,7 +32,7 @@ get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	// Setup pdf
 	bitmap := pdfium.bitmap_create(width_px, height_px, 0)
 	if bitmap == nil {
-		// TODO: print error
+		fmt.eprintln("Error: cannot create a bitmap")
 		return Bitmap{}, false
 	}
 	pdfium.bitmap_fill_rect(bitmap, 0, 0, width_px, height_px, 0xFFFFFFFF)
