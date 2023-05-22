@@ -47,4 +47,4 @@ TEXT_MODAL_TEXT_COLOR :: gui.Color{219, 219, 219, 255}
 
 // TODO: maybe this is not supposed to be here
 // APP CONSTANTS
-SCROLL_SPEED :: 10
+SCROLL_SPEED :: 20
