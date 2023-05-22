@@ -7,7 +7,9 @@ import "../pdf"
 Text_Modal :: struct {
 	rect:       gui.Rect,
 	is_visible: bool,
-	text:       pdf.Pdf_Text,
+	// No reason to render utf16 text when you can render an image of that text. It's easier and the result is the same
+	// in this case
+	text:       gui.Image,
 }
 
 create_text_modal :: proc(center_x, center_y: i32) -> Text_Modal {
@@ -53,14 +55,7 @@ render_text_modal :: proc(tm: ^Text_Modal, app: ^App) {
 	gui.draw_rect(app.window, tm.rect, MODAL_BG_COLOR)
 	gui.draw_rect(app.window, tm.rect, MODAL_BORDER_COLOR, 1)
 
-	if tm.text.size != 0 {
-		font := &app.fonts[14]
-		gui.draw_text_u16(
-			app.window,
-			font,
-			gui.Text_u16{data = tm.text.data, size = tm.text.size},
-			tm.rect,
-			TEXT_MODAL_TEXT_COLOR,
-		)
-	}
+	gui.clip_rect(app.window, tm.rect)
+	gui.draw_image(app.window, &tm.text, tm.rect.x, tm.rect.y, TEXT_MODAL_TEXT_COLOR)
+	gui.unclip_rect(app.window)
 }

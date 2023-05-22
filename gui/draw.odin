@@ -10,6 +10,7 @@ Draw_Instruction_Type :: enum {
 	TEXT,
 	TEXT_U16,
 	IMAGE,
+	CLIP,
 }
 
 Draw_Instruction_Rect :: struct {
@@ -44,6 +45,11 @@ Draw_Instruction_Image :: struct {
 	color: Color,
 }
 
+Draw_Instruction_Clip :: struct {
+	clip: bool,
+	rect: Rect,
+}
+
 Draw_Instruction :: struct {
 	it:      Draw_Instruction_Type,
 	data:    union {
@@ -51,6 +57,7 @@ Draw_Instruction :: struct {
 		Draw_Instruction_Text,
 		Draw_Instruction_Text_Rect,
 		Draw_Instruction_Image,
+		Draw_Instruction_Clip,
 	},
 	z_index: i32,
 }
@@ -120,6 +127,25 @@ draw_image :: proc(window: ^Window, img: ^Image, x, y: i32, color: Color, z_inde
 	)
 }
 
+clip_rect :: proc(window: ^Window, rect: Rect) {
+	append(
+		&window.render_queue,
+		Draw_Instruction{it = .CLIP, data = Draw_Instruction_Clip{true, rect}, z_index = 0},
+	)
+}
+
+unclip_rect :: proc(window: ^Window) {
+	append(
+		&window.render_queue,
+		Draw_Instruction{
+			it = .CLIP,
+			data = Draw_Instruction_Clip{false, Rect{0, 0, 0, 0}},
+			z_index = 0,
+		},
+	)
+}
+
+
 @(private)
 draw_render_queue :: proc(renderer: ^sdl.Renderer, queue: ^[dynamic]Draw_Instruction) {
 	slice.stable_sort_by_cmp(
@@ -141,6 +167,8 @@ draw_render_queue :: proc(renderer: ^sdl.Renderer, queue: ^[dynamic]Draw_Instruc
 			render_text_u16(renderer, instruction.data.(Draw_Instruction_Text))
 		case .IMAGE:
 			render_image(renderer, instruction.data.(Draw_Instruction_Image))
+		case .CLIP:
+			clip_rect(renderer, instruction.data.(Draw_Instruction_Clip))
 		}
 	}
 
@@ -237,10 +265,11 @@ render_image :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Image) {
 	sdl.RenderCopy(renderer, i.img.instance, nil, &rect)
 }
 
-// clip_rect :: proc(window: ^Window, x: i32, y: i32, width: i32, height: i32) {
-// 	sdl.RenderSetClipRect(window.renderer, &sdl.Rect{x, y, width, height})
-// }
-
-// unclip_rect :: proc(window: ^Window) {
-// 	sdl.RenderSetClipRect(window.renderer, nil)
-// }
+@(private = "file")
+clip_rect :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Clip) {
+	if i.clip {
+		sdl.RenderSetClipRect(renderer, &sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.rect.h})
+	} else {
+		sdl.RenderSetClipRect(renderer, nil)
+	}
+}

@@ -91,7 +91,13 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 
 	// Load pdf text
 	text_modal := &result.modal_manager.text_modal
-	text_modal.text = pdf.get_all_text_in_doc(result.pdf_doc)
+	pdf_text := pdf.get_all_text_in_doc(result.pdf_doc)
+	defer pdf.free_text(&pdf_text)
+	img, img_ok := gui.image_from_pdf_text(pdf_text, &result.fonts[14], TEXT_MODAL_WIDTH, window)
+	if !img_ok {
+		return App{}, false
+	}
+	text_modal.text = img
 
 	// Load pdf page bitmaps
 	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
