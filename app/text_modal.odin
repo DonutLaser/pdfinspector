@@ -6,6 +6,7 @@ import "../pdf"
 
 Text_Modal :: struct {
 	rect:       gui.Rect,
+	y_offset:   i32,
 	is_visible: bool,
 	// No reason to render utf16 text when you can render an image of that text. It's easier and the result is the same
 	// in this case
@@ -44,6 +45,12 @@ tick_text_modal :: proc(tm: ^Text_Modal, input: ^gui.Input) {
 	if input.escape == .JUST_PRESSED || input.rmb == .JUST_PRESSED {
 		tm.is_visible = false
 	} else {
+		if input.scroll_y != 0 {
+			tm.y_offset += (input.scroll_y * SCROLL_SPEED)
+			if tm.y_offset > 0 {
+				tm.y_offset = 0
+			}
+		}
 	}
 }
 
@@ -62,6 +69,12 @@ render_text_modal :: proc(tm: ^Text_Modal, app: ^App) {
 		tm.rect.h - TEXT_PADDING * 2,
 	}
 	gui.clip_rect(app.window, text_rect)
-	gui.draw_image(app.window, &tm.text, text_rect.x, text_rect.y, TEXT_MODAL_TEXT_COLOR)
+	gui.draw_image(
+		app.window,
+		&tm.text,
+		text_rect.x,
+		text_rect.y + tm.y_offset,
+		TEXT_MODAL_TEXT_COLOR,
+	)
 	gui.unclip_rect(app.window)
 }

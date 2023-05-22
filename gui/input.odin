@@ -11,15 +11,16 @@ Button_State :: enum {
 }
 
 Input :: struct {
-	mouse_x: i32,
-	mouse_y: i32,
-	lmb:     Button_State,
-	rmb:     Button_State,
-	char:    byte,
-	ctrl:    Button_State,
-	alt:     Button_State,
-	shift:   Button_State,
-	escape:  Button_State,
+	mouse_x:  i32,
+	mouse_y:  i32,
+	scroll_y: i32,
+	lmb:      Button_State,
+	rmb:      Button_State,
+	char:     byte,
+	ctrl:     Button_State,
+	alt:      Button_State,
+	shift:    Button_State,
+	escape:   Button_State,
 }
 
 @(private = "file")
@@ -154,4 +155,6 @@ update_input :: proc(input: ^Input) {
 
 	if input.shift == .JUST_RELEASED {input.shift = .RELEASED}
 	if input.shift == .JUST_PRESSED {input.shift = .PRESSED}
+
+	input.scroll_y = 0
 }

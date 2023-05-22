@@ -87,6 +87,8 @@ handle_events :: proc(wnd: ^Window) -> bool {
 		case .MOUSEMOTION:
 			wnd.input.mouse_x = event.motion.x
 			wnd.input.mouse_y = event.motion.y
+		case .MOUSEWHEEL:
+			wnd.input.scroll_y = event.wheel.y
 		case .MOUSEBUTTONDOWN, .MOUSEBUTTONUP:
 			new_state :=
 				event.type == .MOUSEBUTTONDOWN \
