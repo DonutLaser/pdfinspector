@@ -28,7 +28,6 @@ get_all_text_in_doc :: proc(doc: Document) -> Pdf_Text {
 		total_len += text_lengths[i]
 	}
 
-
 	// ... and then we actually load the text for each page. That's why we collected the text pages...
 	result := make([^]u16, total_len)
 	start: i32 = 0
