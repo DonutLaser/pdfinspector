@@ -115,8 +115,8 @@ free_document_structure :: proc(structure: [dynamic]Page) {
 			#partial switch obj.kind {
 			case .TEXT:
 				free_text_object_data(obj.data.(Text_Object))
-			case:
-				panic("Unreachable")
+			// case:
+			// 	panic("Unreachable")
 			}
 		}
 

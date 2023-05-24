@@ -117,10 +117,17 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 		setup_document_view_page(&result.document_view, i, image)
 	}
 
+	// Load pdf structure
+	pdf_structure := pdf.get_document_structure(pdf_doc)
+	defer pdf.free_document_structure(pdf_structure)
+	setup_structure(&result.structure, pdf_structure)
+
 	return result, true
 }
 
 destroy_app :: proc(app: ^App) {
+	destroy_structure(&app.structure)
+
 	pdf.close_document(app.pdf_doc)
 	pdf.deinit()
 }
@@ -150,6 +157,8 @@ tick :: proc(app: ^App, input: ^gui.Input) {
 		case .TEXT:
 			open_modal(&app.modal_manager, .TEXT)
 		}
+
+		tick_structure(&app.structure, app, input)
 	}
 
 	tick_modal_manager(&app.modal_manager, input)
