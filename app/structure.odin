@@ -25,10 +25,11 @@ Node :: struct {
 }
 
 Structure :: struct {
-	rect:        gui.Rect,
-	nodes:       [dynamic]Node,
-	active_node: ^Node,
-	y_offset:    i32,
+	rect:         gui.Rect,
+	nodes:        [dynamic]Node,
+	active_node:  ^Node,
+	y_offset:     i32,
+	total_height: i32,
 }
 
 create_structure :: proc(rect: gui.Rect) -> Structure {
@@ -96,6 +97,8 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 			s.nodes[i].children[j] = n
 		}
 	}
+
+	s.total_height = i32(len(s.nodes)) * NODE_HEIGHT
 }
 
 tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
@@ -109,9 +112,15 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 	}
 
 	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, s.rect) {
-		s.y_offset += input.scroll_y * SCROLL_SPEED
-		if s.y_offset > 0 {
-			s.y_offset = 0
+		if s.total_height > s.rect.h {
+			new_offset := s.y_offset + (input.scroll_y * SCROLL_SPEED)
+			if new_offset > 0 {
+				new_offset = 0
+			} else if -new_offset + s.rect.h > s.total_height {
+				new_offset = s.rect.h - s.total_height
+			}
+
+			s.y_offset = new_offset
 		}
 	}
 }
@@ -194,4 +203,6 @@ recalculate_nodes :: proc(s: ^Structure) {
 			}
 		}
 	}
+
+	s.total_height = start_y
 }
