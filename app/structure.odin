@@ -112,16 +112,7 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 	}
 
 	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, s.rect) {
-		if s.total_height > s.rect.h {
-			new_offset := s.y_offset + (input.scroll_y * SCROLL_SPEED)
-			if new_offset > 0 {
-				new_offset = 0
-			} else if -new_offset + s.rect.h > s.total_height {
-				new_offset = s.rect.h - s.total_height
-			}
-
-			s.y_offset = new_offset
-		}
+		s.y_offset = calculate_scroll_offset(s.y_offset, input.scroll_y, s.rect.h, s.total_height)
 	}
 }
 
