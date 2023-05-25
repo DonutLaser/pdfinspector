@@ -101,48 +101,10 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 	for i := 0; i < len(s.nodes); i += 1 {
 		n := s.nodes[i]
-
-		node_rect := gui.Rect{n.rect.x, n.rect.y + s.y_offset, n.rect.w, n.rect.h}
-		if gui.is_point_in_rect(input.mouse_x, input.mouse_y, node_rect) {
-			s.nodes[i].hovered = true
-
-			if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
-				s.nodes[i].active = true
-			} else if input.lmb == .JUST_RELEASED {
-				s.nodes[i].expanded = !s.nodes[i].expanded
-				s.nodes[i].active = false
-
-				recalculate_nodes(s)
-
-				s.active_node = &s.nodes[i]
-			}
-		} else {
-			s.nodes[i].hovered = false
-			s.nodes[i].active = false
-		}
+		check_mouse_on_node(s, &s.nodes[i], input)
 
 		for j := 0; j < len(n.children); j += 1 {
-			child_rect := gui.Rect{
-				n.children[j].rect.x,
-				n.children[j].rect.y + s.y_offset,
-				n.children[j].rect.w,
-				n.children[j].rect.h,
-			}
-			if gui.is_point_in_rect(input.mouse_x, input.mouse_y, child_rect) {
-				n.children[j].hovered = true
-
-				if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
-					n.children[j].active = true
-				} else if input.lmb == .JUST_RELEASED {
-					n.children[j].expanded = !n.children[j].expanded
-					n.children[j].active = false
-
-					s.active_node = n.children[j]
-				}
-			} else {
-				n.children[j].hovered = false
-				n.children[j].active = false
-			}
+			check_mouse_on_node(s, n.children[j], input)
 		}
 	}
 
@@ -151,6 +113,28 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 		if s.y_offset > 0 {
 			s.y_offset = 0
 		}
+	}
+}
+
+@(private = "file")
+check_mouse_on_node :: proc(s: ^Structure, node: ^Node, input: ^gui.Input) {
+	rect := gui.Rect{node.rect.x, node.rect.y + s.y_offset, node.rect.w, node.rect.h}
+	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, rect) {
+		node.hovered = true
+
+		if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
+			node.active = true
+		} else if input.lmb == .JUST_RELEASED {
+			node.expanded = !node.expanded
+			node.active = false
+
+			recalculate_nodes(s)
+
+			s.active_node = node
+		}
+	} else {
+		node.hovered = false
+		node.active = false
 	}
 }
 
