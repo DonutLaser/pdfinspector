@@ -53,3 +53,8 @@ NODE_HOVERED_BG_COLOR :: gui.Color{88, 88, 88, 255}
 NODE_ACTIVE_BG_COLOR :: gui.Color{95, 95, 95, 255}
 NODE_BORDER_COLOR :: gui.Color{63, 63, 63, 255}
 NODE_TITLE_COLOR :: gui.Color{219, 219, 219, 255}
+
+// SCROLLBAR
+SCROLLBAR_SIZE :: 16 // Horizontal or vertical
+SCROLLBAR_BG_COLOR :: gui.Color{60, 60, 60, 255}
+SCROLLBAR_HANDLE_COLOR :: gui.Color{79, 79, 79, 255}

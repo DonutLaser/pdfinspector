@@ -97,13 +97,13 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 		img, img_ok := gui.image_from_pdf_text(
 			pdf_text,
 			&result.fonts[14],
-			TEXT_MODAL_WIDTH - TEXT_PADDING * 2,
+			TEXT_MODAL_WIDTH - TEXT_PADDING * 2 - SCROLLBAR_SIZE,
 			window,
 		)
 		if !img_ok {
 			return App{}, false
 		}
-		text_modal.text = img
+		set_text_image(text_modal, img)
 	}
 
 	// Load pdf page bitmaps

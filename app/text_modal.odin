@@ -4,16 +4,15 @@ import "core:fmt"
 import "../gui"
 import "../pdf"
 
-@(private = "file")
-SCROLL_SPEED :: 20
-
 Text_Modal :: struct {
-	rect:       gui.Rect,
-	y_offset:   i32,
-	is_visible: bool,
+	rect:          gui.Rect,
+	viewport_rect: gui.Rect,
+	y_offset:      i32,
+	is_visible:    bool,
 	// No reason to render utf16 text when you can render an image of that text. It's easier and the result is the same
 	// in this case
-	text:       gui.Image,
+	text:          gui.Image,
+	scrollbar:     Scrollbar,
 }
 
 create_text_modal :: proc(center_x, center_y: i32) -> Text_Modal {
@@ -24,10 +23,15 @@ create_text_modal :: proc(center_x, center_y: i32) -> Text_Modal {
 		TEXT_MODAL_HEIGHT,
 	}
 
-	r, b := gui.get_rect_end(rect)
-
 	result := Text_Modal {
 		rect = rect,
+		viewport_rect = gui.Rect{
+			rect.x + TEXT_PADDING,
+			rect.y + TEXT_PADDING,
+			rect.w - TEXT_PADDING + 2,
+			rect.h - TEXT_PADDING * 2,
+		},
+		scrollbar = create_scrollbar(rect),
 	}
 
 	return result
@@ -37,7 +41,18 @@ resize_text_modal :: proc(tm: ^Text_Modal, center_x, center_y: i32) {
 	tm.rect.x = center_x - TEXT_MODAL_WIDTH / 2
 	tm.rect.y = center_y - TEXT_MODAL_HEIGHT / 2
 
-	r, b := gui.get_rect_end(tm.rect)
+	tm.viewport_rect.x = tm.rect.x + TEXT_PADDING
+	tm.viewport_rect.y = tm.rect.y + TEXT_PADDING
+
+	resize_scrollbar(&tm.scrollbar, tm.rect)
+}
+
+set_text_image :: proc(tm: ^Text_Modal, img: gui.Image) {
+	tm.text = img
+
+	if tm.text.height > tm.rect.h {
+		show_scrollbar(&tm.scrollbar, tm.viewport_rect.h, tm.text.height)
+	}
 }
 
 tick_text_modal :: proc(tm: ^Text_Modal, input: ^gui.Input) {
@@ -55,6 +70,8 @@ tick_text_modal :: proc(tm: ^Text_Modal, input: ^gui.Input) {
 				TEXT_MODAL_HEIGHT - TEXT_PADDING * 2,
 				tm.text.height,
 			)
+
+			update_scrollbar_offset(&tm.scrollbar, tm.y_offset)
 		}
 	}
 }
@@ -65,21 +82,18 @@ render_text_modal :: proc(tm: ^Text_Modal, app: ^App) {
 	}
 
 	gui.draw_rect(app.window, tm.rect, MODAL_BG_COLOR)
-	gui.draw_rect(app.window, tm.rect, MODAL_BORDER_COLOR, 1)
 
-	text_rect := gui.Rect{
-		tm.rect.x + TEXT_PADDING,
-		tm.rect.y + TEXT_PADDING,
-		tm.rect.w - TEXT_PADDING * 2,
-		tm.rect.h - TEXT_PADDING * 2,
-	}
-	gui.clip_rect(app.window, text_rect)
+	gui.clip_rect(app.window, tm.viewport_rect)
 	gui.draw_image(
 		app.window,
 		&tm.text,
-		text_rect.x,
-		text_rect.y + tm.y_offset,
+		tm.viewport_rect.x,
+		tm.viewport_rect.y + tm.y_offset,
 		TEXT_MODAL_TEXT_COLOR,
 	)
 	gui.unclip_rect(app.window)
+
+	render_scrollbar(&tm.scrollbar, app)
+
+	gui.draw_rect(app.window, tm.rect, MODAL_BORDER_COLOR, 1)
 }
