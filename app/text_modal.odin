@@ -4,6 +4,7 @@ import "core:fmt"
 import "../gui"
 import "../pdf"
 
+@(private = "file")
 SCROLL_SPEED :: 20
 
 Text_Modal :: struct {

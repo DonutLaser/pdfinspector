@@ -5,6 +5,9 @@ import "../gui"
 import "../pdf"
 
 @(private = "file")
+SCROLL_SPEED :: 20
+
+@(private = "file")
 Node_Metadata_Key_Value_Pair :: struct {
 	key:   string,
 	value: string,
@@ -25,10 +28,11 @@ Structure :: struct {
 	rect:        gui.Rect,
 	nodes:       [dynamic]Node,
 	active_node: ^Node,
+	y_offset:    i32,
 }
 
 create_structure :: proc(rect: gui.Rect) -> Structure {
-	return Structure{rect = rect}
+	return Structure{rect = rect, active_node = nil, y_offset = 0}
 }
 
 destroy_structure :: proc(s: ^Structure) {
@@ -97,7 +101,9 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 	for i := 0; i < len(s.nodes); i += 1 {
 		n := s.nodes[i]
-		if gui.is_point_in_rect(input.mouse_x, input.mouse_y, n.rect) {
+
+		node_rect := gui.Rect{n.rect.x, n.rect.y + s.y_offset, n.rect.w, n.rect.h}
+		if gui.is_point_in_rect(input.mouse_x, input.mouse_y, node_rect) {
 			s.nodes[i].hovered = true
 
 			if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
@@ -116,7 +122,13 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 		}
 
 		for j := 0; j < len(n.children); j += 1 {
-			if gui.is_point_in_rect(input.mouse_x, input.mouse_y, n.children[j].rect) {
+			child_rect := gui.Rect{
+				n.children[j].rect.x,
+				n.children[j].rect.y + s.y_offset,
+				n.children[j].rect.w,
+				n.children[j].rect.h,
+			}
+			if gui.is_point_in_rect(input.mouse_x, input.mouse_y, child_rect) {
 				n.children[j].hovered = true
 
 				if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
@@ -133,6 +145,13 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 			}
 		}
 	}
+
+	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, s.rect) {
+		s.y_offset += input.scroll_y * SCROLL_SPEED
+		if s.y_offset > 0 {
+			s.y_offset = 0
+		}
+	}
 }
 
 render_structure :: proc(s: ^Structure, app: ^App) {
@@ -142,18 +161,18 @@ render_structure :: proc(s: ^Structure, app: ^App) {
 
 	for node, index in s.nodes {
 		n := node
-		render_node(&n, app)
+		render_node(&n, app, s.y_offset)
 
 		if node.expanded {
 			for child in node.children {
-				render_node(child, app, 2)
+				render_node(child, app, s.y_offset, 2)
 			}
 		}
 	}
 }
 
 @(private = "file")
-render_node :: proc(node: ^Node, app: ^App, depth: i32 = 1) {
+render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 	color := NODE_BG_COLOR
 	if node.active {
 		color = NODE_ACTIVE_BG_COLOR
@@ -161,24 +180,17 @@ render_node :: proc(node: ^Node, app: ^App, depth: i32 = 1) {
 		color = NODE_HOVERED_BG_COLOR
 	}
 
-	gui.draw_rect(app.window, node.rect, color)
-	gui.draw_rect(
-		app.window,
-		gui.Rect{node.rect.x, node.rect.y + NODE_HEIGHT - 1, node.rect.w, 1},
-		NODE_BORDER_COLOR,
-	)
+	r := gui.Rect{node.rect.x, node.rect.y + y_offset, node.rect.w, node.rect.h}
+
+	gui.draw_rect(app.window, r, color)
+	gui.draw_rect(app.window, gui.Rect{r.x, r.y + NODE_HEIGHT - 1, r.w, 1}, NODE_BORDER_COLOR)
 
 	main_font := &app.fonts[14]
 	gui.draw_text(
 		app.window,
 		main_font,
 		gui.Text{data = node.label, allocated = false},
-		gui.Rect{
-			node.rect.x + NODE_PADDING * depth,
-			node.rect.y + NODE_HEIGHT / 2 - main_font.size / 2,
-			-1,
-			-1,
-		},
+		gui.Rect{r.x + NODE_PADDING * depth, r.y + NODE_HEIGHT / 2 - main_font.size / 2, -1, -1},
 		NODE_TITLE_COLOR,
 	)
 }
