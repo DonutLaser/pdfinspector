@@ -48,12 +48,14 @@ tick_text_modal :: proc(tm: ^Text_Modal, input: ^gui.Input) {
 	if input.escape == .JUST_PRESSED || input.rmb == .JUST_PRESSED {
 		tm.is_visible = false
 	} else {
-		tm.y_offset = calculate_scroll_offset(
-			tm.y_offset,
-			input.scroll_y,
-			TEXT_MODAL_HEIGHT - TEXT_PADDING * 2,
-			tm.text.height,
-		)
+		if gui.is_point_in_rect(input.mouse_x, input.mouse_y, tm.rect) {
+			tm.y_offset = calculate_scroll_offset(
+				tm.y_offset,
+				input.scroll_y,
+				TEXT_MODAL_HEIGHT - TEXT_PADDING * 2,
+				tm.text.height,
+			)
+		}
 	}
 }
 
