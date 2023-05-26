@@ -61,6 +61,7 @@ resize_structure :: proc(s: ^Structure, h: i32) {
 	s.rect.h = h
 
 	resize_scrollbar(&s.scrollbar, s.rect)
+	// TODO: update scrollbar handle
 }
 
 setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
