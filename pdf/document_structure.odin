@@ -27,6 +27,31 @@ Text_Render_Mode :: enum {
 	CLIP,
 }
 
+text_render_mode_to_string :: proc(mode: Text_Render_Mode) -> string {
+	switch mode {
+	case .UNKNOWN:
+		return "uknown"
+	case .FILL:
+		return "fill"
+	case .STROKE:
+		return "stroke"
+	case .FILL_STROKE:
+		return "fill stroke"
+	case .INVISIBLE:
+		return "invisible"
+	case .FILL_CLIP:
+		return "fill clip"
+	case .STROKE_CLIP:
+		return "stroke clip"
+	case .FILL_STROKE_CLIP:
+		return "fill stroke clip"
+	case .CLIP:
+		return "clip"
+	case:
+		return ""
+	}
+}
+
 Page :: struct {
 	objects:     [dynamic]Object,
 	annotations: [dynamic]Annotation,
@@ -97,9 +122,9 @@ get_document_structure :: proc(doc: Document) -> [dynamic]Page {
 			case .TEXT:
 				obj.data = extract_text_object_data(text_page, pdf_obj)
 			case .PATH:
-			// extract path object data
+			// TODO: extract path object data
 			case .IMAGE:
-			// extract image object data
+			// TODO: extract image object data
 			}
 
 			result[i].objects[j] = obj
@@ -112,11 +137,10 @@ get_document_structure :: proc(doc: Document) -> [dynamic]Page {
 free_document_structure :: proc(structure: [dynamic]Page) {
 	for page in structure {
 		for obj in page.objects {
+			// TODO
 			#partial switch obj.kind {
 			case .TEXT:
 				free_text_object_data(obj.data.(Text_Object))
-			// case:
-			// 	panic("Unreachable")
 			}
 		}
 
@@ -216,6 +240,7 @@ pageobj_type_to_object_kind :: proc(t: c.int) -> Object_Kind {
 	}
 }
 
+@(private = "file")
 pdfium_text_render_mode_to_text_render_mode :: proc(
 	mode: pdfium.TEXT_RENDERMODE,
 ) -> Text_Render_Mode {
@@ -241,5 +266,4 @@ pdfium_text_render_mode_to_text_render_mode :: proc(
 	case:
 		panic("Unreachable")
 	}
-
 }

@@ -8,9 +8,14 @@ import "../pdf"
 SCROLL_SPEED :: 20
 
 @(private = "file")
-Node_Metadata_Key_Value_Pair :: struct {
+Tuple :: struct {
 	key:   string,
-	value: string,
+	value: union {
+		string,
+		i32,
+		f32,
+		bool,
+	},
 }
 
 @(private = "file")
@@ -21,7 +26,7 @@ Node :: struct {
 	hovered:  bool,
 	active:   bool,
 	children: [dynamic]^Node,
-	metadata: [dynamic]Node_Metadata_Key_Value_Pair,
+	metadata: [dynamic]Tuple,
 }
 
 Structure :: struct {
@@ -77,7 +82,7 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 			hovered = false,
 			active = false,
 			children = make([dynamic]^Node, len(page.objects)),
-			metadata = nil, // TODO
+			metadata = nil,
 		}
 
 		for j := 0; j < len(page.objects); j += 1 {
@@ -89,11 +94,30 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 			n.hovered = false
 			n.active = false
 			n.children = nil
-			n.metadata = nil // TODO
+			n.metadata = nil
 
 			switch obj.kind {
 			case .TEXT:
 				n.label = "Text"
+				n.metadata = make([dynamic]Tuple)
+
+				data := obj.data.(pdf.Text_Object)
+				append(&n.metadata, Tuple{"Mode", pdf.text_render_mode_to_string(data.mode)})
+				append(&n.metadata, Tuple{"Value", data.text})
+				append(&n.metadata, Tuple{"Size", data.size})
+				append(&n.metadata, Tuple{"Font name", data.font.name})
+				append(&n.metadata, Tuple{"Font weight", data.font.weight})
+				append(&n.metadata, Tuple{"Font ascent", data.font.ascent})
+				append(&n.metadata, Tuple{"Font descent", data.font.descent})
+				append(&n.metadata, Tuple{"Font is fixed pitch", data.font.is_fixed_pitch})
+				append(&n.metadata, Tuple{"Font is serif", data.font.is_serif})
+				append(&n.metadata, Tuple{"Font is symbolilc", data.font.is_symbolic})
+				append(&n.metadata, Tuple{"Font is script", data.font.is_script})
+				append(&n.metadata, Tuple{"Font is italic", data.font.is_italic})
+				append(&n.metadata, Tuple{"Font is all caps", data.font.is_all_caps})
+				append(&n.metadata, Tuple{"Font is small caps", data.font.is_small_caps})
+				append(&n.metadata, Tuple{"Font is forced bold", data.font.is_forced_bold})
+				append(&n.metadata, Tuple{"Font is embedded", data.font.is_embedded})
 			case .IMAGE:
 				n.label = "Image"
 			case .PATH:
