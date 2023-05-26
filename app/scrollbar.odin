@@ -1,5 +1,6 @@
 package app
 
+import "core:fmt"
 import "../gui"
 
 Scrollbar :: struct {
@@ -17,7 +18,7 @@ create_scrollbar :: proc(parent_rect: gui.Rect) -> Scrollbar {
 		parent_rect.x + parent_rect.w - SCROLLBAR_SIZE,
 		parent_rect.y,
 		SCROLLBAR_SIZE,
-		parent_rect.w,
+		parent_rect.h,
 	}
 
 	result := Scrollbar {

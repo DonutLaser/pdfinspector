@@ -30,10 +30,19 @@ Structure :: struct {
 	active_node:  ^Node,
 	y_offset:     i32,
 	total_height: i32,
+	scrollbar:    Scrollbar,
 }
 
 create_structure :: proc(rect: gui.Rect) -> Structure {
-	return Structure{rect = rect, active_node = nil, y_offset = 0}
+	return(
+		Structure{
+			rect = rect,
+			active_node = nil,
+			y_offset = 0,
+			total_height = 0,
+			scrollbar = create_scrollbar(rect),
+		} \
+	)
 }
 
 destroy_structure :: proc(s: ^Structure) {
@@ -50,6 +59,8 @@ destroy_structure :: proc(s: ^Structure) {
 
 resize_structure :: proc(s: ^Structure, h: i32) {
 	s.rect.h = h
+
+	resize_scrollbar(&s.scrollbar, s.rect)
 }
 
 setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
@@ -99,6 +110,12 @@ setup_structure :: proc(s: ^Structure, pdf_structure: [dynamic]pdf.Page) {
 	}
 
 	s.total_height = i32(len(s.nodes)) * NODE_HEIGHT
+
+	if s.total_height > s.rect.h {
+		show_scrollbar(&s.scrollbar, s.rect.h, s.total_height)
+	} else {
+		hide_scrollbar(&s.scrollbar)
+	}
 }
 
 tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
@@ -113,6 +130,7 @@ tick_structure :: proc(s: ^Structure, app: ^App, input: ^gui.Input) {
 
 	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, s.rect) {
 		s.y_offset = calculate_scroll_offset(s.y_offset, input.scroll_y, s.rect.h, s.total_height)
+		update_scrollbar_offset(&s.scrollbar, s.y_offset)
 	}
 }
 
@@ -153,6 +171,8 @@ render_structure :: proc(s: ^Structure, app: ^App) {
 			}
 		}
 	}
+
+	render_scrollbar(&s.scrollbar, app)
 }
 
 @(private = "file")
@@ -196,4 +216,9 @@ recalculate_nodes :: proc(s: ^Structure) {
 	}
 
 	s.total_height = start_y
+	if s.total_height > s.rect.h {
+		show_scrollbar(&s.scrollbar, s.rect.h, s.total_height)
+	} else {
+		hide_scrollbar(&s.scrollbar)
+	}
 }
