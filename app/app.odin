@@ -4,30 +4,13 @@ import "core:fmt"
 import "../gui"
 import "../pdf"
 
-@(private = "file")
-Image_To_Load :: struct {
-	path: cstring,
-	name: string,
-}
-
-@(private = "file")
-Font_To_Load :: struct {
-	path: cstring,
-	size: i32,
-}
-
 App :: struct {
-	window:        ^gui.Window,
-	pdf_doc:       pdf.Document,
-	tabs:          Tabs,
-	structure:     Structure,
-	document_view: Document_View,
-	modal_manager: Modal_Manager,
-	icons:         map[string]gui.Image,
-	fonts:         map[i32]gui.Font,
+	window:       ^gui.Window,
+	pdf_doc:      pdf.Document,
+	pdf_metadata: pdf.Metadata,
 }
 
-create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
+app_new :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	pdf.init()
 
 	pdf_doc, pdf_ok := pdf.open_document(pdf_file_path)
@@ -36,138 +19,109 @@ create_app :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	}
 
 	result := App {
-		window        = window,
-		pdf_doc       = pdf_doc,
-		tabs          = create_tabs(gui.Rect{0, 0, TABS_WIDTH, window.height}),
-		structure     = create_structure(gui.Rect{TABS_WIDTH, 0, STRUCTURE_WIDTH, window.height}),
-		document_view = create_document_view(
-			gui.Rect{
-				TABS_WIDTH + STRUCTURE_WIDTH,
-				0,
-				window.width - TABS_WIDTH - STRUCTURE_WIDTH,
-				window.height,
-			},
-			pdf_doc.page_count,
-		),
-		modal_manager = create_modal_manager(gui.Rect{0, 0, window.width, window.height}),
-		icons         = make(map[string]gui.Image),
-		fonts         = make(map[i32]gui.Font),
+		window  = window,
+		pdf_doc = pdf_doc,
 	}
 
-	// Load icons
-	images_to_load := []Image_To_Load{
-		Image_To_Load{"./assets/icons/text.png", "text.png"},
-		Image_To_Load{"./assets/icons/metadata.png", "metadata.png"},
+	assets_init(result.window)
+
+	layout := gui.layout_new(gui.Rect{0, 0, result.window.width, result.window.height})
+	layout.state = .HORIZONTAL
+
+	// Init tabs
+	tabs_init(gui.layout_get_rect(&layout, TAB_SIZE, -1))
+	tabs_set_icon(.TEXT, assets_get_image("text.png"))
+	tabs_set_icon(.METADATA, assets_get_image("metadata.png"))
+
+	// Init structure
+	structure_init(gui.layout_get_rect(&layout, STRUCTURE_WIDTH, -1))
+	pdf_structure := pdf.get_document_structure(result.pdf_doc)
+	defer pdf.free_document_structure(pdf_structure)
+	structure_setup(pdf_structure)
+
+	// Init document view
+	document_view_init(gui.layout_get_rect(&layout, -1, -1))
+	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
+		bitmap, bitmap_ok := pdf.get_page_bitmap(result.pdf_doc, i)
+		if !bitmap_ok {return App{}, false}
+
+		image, image_ok := gui.image_from_pdf_bitmap(bitmap, result.window)
+		if !image_ok {return App{}, false}
+
+		document_view_add_page(image)
 	}
-	for image in images_to_load {
-		icon, ok := gui.load_image(image.path, window)
-		if !ok {return App{}, false}
-		result.icons[image.name] = icon
-	}
 
-	// Load fonts
-	fonts_to_load := []Font_To_Load{Font_To_Load{"./assets/fonts/consola.ttf", 14}}
-	for f in fonts_to_load {
-		font, ok := gui.load_font(f.path, f.size)
-		if !ok {return App{}, false}
-		result.fonts[f.size] = font
-	}
+	// Init metadata modal
+	result.pdf_metadata = pdf.get_doc_metadata(result.pdf_doc)
+	metadata_modal_add_field("Title", result.pdf_metadata.title)
+	metadata_modal_add_field("Author", result.pdf_metadata.author)
+	metadata_modal_add_field("Subject", result.pdf_metadata.subject)
+	metadata_modal_add_field("Keywords", result.pdf_metadata.keywords)
+	metadata_modal_add_field("Creator", result.pdf_metadata.creator)
+	metadata_modal_add_field("Producer", result.pdf_metadata.producer)
+	metadata_modal_add_field("CreationDate", result.pdf_metadata.creation_date)
+	metadata_modal_add_field("ModDate", result.pdf_metadata.mod_date)
 
-	set_text_icon(&result.tabs, &result.icons["text.png"])
-	set_metadata_icon(&result.tabs, &result.icons["metadata.png"])
-
-	// Load pdf metadata
-	metadata_modal := &result.modal_manager.metadata_modal
-	metadata := pdf.get_doc_metadata(result.pdf_doc)
-	defer pdf.free_doc_metadata(&metadata)
-	add_metadata_field(metadata_modal, "Title", metadata.title, &result)
-	add_metadata_field(metadata_modal, "Author", metadata.author, &result)
-	add_metadata_field(metadata_modal, "Subject", metadata.subject, &result)
-	add_metadata_field(metadata_modal, "Keywords", metadata.keywords, &result)
-	add_metadata_field(metadata_modal, "Creator", metadata.creator, &result)
-	add_metadata_field(metadata_modal, "Producer", metadata.producer, &result)
-	add_metadata_field(metadata_modal, "CreationDate", metadata.creation_date, &result)
-	add_metadata_field(metadata_modal, "ModDate", metadata.mod_date, &result)
-
-	// Load pdf text
-	text_modal := &result.modal_manager.text_modal
+	// Init text modal
 	pdf_text := pdf.get_all_text_in_doc(result.pdf_doc)
 	defer pdf.free_text(&pdf_text)
 	if pdf_text.size > 0 {
 		img, img_ok := gui.image_from_pdf_text(
 			pdf_text,
-			&result.fonts[14],
-			TEXT_MODAL_WIDTH - TEXT_PADDING * 2 - SCROLLBAR_SIZE,
+			assets_get_font_at_size(14),
+			TEXT_MODAL_SIZE - TEXT_MODAL_PADDING * 2 - SCROLLBAR_SIZE,
 			window,
 		)
 		if !img_ok {
 			return App{}, false
 		}
-		set_text_image(text_modal, img)
+
+		text_modal_set_text(img)
 	}
-
-	// Load pdf page bitmaps
-	for i: i32 = 0; i < result.pdf_doc.page_count; i += 1 {
-		bitmap, bitmap_ok := pdf.get_page_bitmap(result.pdf_doc, i)
-		if !bitmap_ok {return App{}, false}
-
-		image, image_ok := gui.image_from_pdf_bitmap(bitmap, window)
-		if !image_ok {return App{}, false}
-
-		setup_document_view_page(&result.document_view, i, image)
-	}
-
-	// Load pdf structure
-	pdf_structure := pdf.get_document_structure(pdf_doc)
-	defer pdf.free_document_structure(pdf_structure)
-	setup_structure(&result.structure, pdf_structure)
 
 	return result, true
 }
 
-destroy_app :: proc(app: ^App) {
-	destroy_structure(&app.structure)
+app_destroy :: proc(app: ^App) {
+	structure_deinit()
+	document_view_deinit()
 
+	pdf.free_doc_metadata(&app.pdf_metadata)
 	pdf.close_document(app.pdf_doc)
 	pdf.deinit()
 }
 
-resize_app :: proc(app: ^App) {
+app_resize :: proc(app: ^App) {
 	// At this point, the window that we have a reference to should have the new sizes already set
-	resize_tabs(&app.tabs, app.window.height)
-	resize_structure(&app.structure, app.window.height)
-	resize_document_view(
-		&app.document_view,
-		gui.Rect{
-			TABS_WIDTH + STRUCTURE_WIDTH,
-			0,
-			app.window.width - TABS_WIDTH - STRUCTURE_WIDTH,
-			app.window.height,
-		},
-	)
-	resize_modals(&app.modal_manager, app.window.width / 2, app.window.height / 2)
+	layout := gui.layout_new(gui.Rect{0, 0, app.window.width, app.window.height})
+	layout.state = .HORIZONTAL
+
+	tabs_resize(gui.layout_get_rect(&layout, TAB_SIZE, -1))
+	structure_resize(gui.layout_get_rect(&layout, STRUCTURE_WIDTH, -1))
+	document_view_resize(gui.layout_get_rect(&layout, -1, -1))
 }
 
-tick :: proc(app: ^App, input: ^gui.Input) {
-	if app.modal_manager.open_modal == .NONE {
-		clicked_tab := tick_tabs(&app.tabs, app, input)
-		#partial switch clicked_tab {
-		case .METADATA:
-			open_modal(&app.modal_manager, .METADATA)
-		case .TEXT:
-			open_modal(&app.modal_manager, .TEXT)
-		}
-
-		tick_structure(&app.structure, app, input)
+app_tick :: proc(app: ^App, input: ^gui.Input) {
+	if modal_manager_get_open_modal() != .NONE {
+		modal_manager_tick(input)
+		return
 	}
 
-	tick_modal_manager(&app.modal_manager, input)
+	clicked_tab := tabs_tick(input)
+	#partial switch clicked_tab {
+	case .METADATA:
+		modal_manager_open_modal(.METADATA, gui.Rect{0, 0, app.window.width, app.window.height})
+	case .TEXT:
+		modal_manager_open_modal(.TEXT, gui.Rect{0, 0, app.window.width, app.window.height})
+	}
+
+	structure_tick(input)
 }
 
-render :: proc(app: ^App) {
-	render_tabs(&app.tabs, app)
-	render_structure(&app.structure, app)
-	render_document_view(&app.document_view, app)
+app_render :: proc(app: ^App) {
+	tabs_render(app)
+	structure_render(app)
+	document_view_render(app)
 
-	render_modal_manager(&app.modal_manager, app)
+	modal_manager_render(app)
 }

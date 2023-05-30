@@ -3,63 +3,70 @@ package app
 import "core:fmt"
 import "../gui"
 
-Clicked_Tab :: enum {
-	STRUCTURE,
+@(private = "file")
+instance := Tabs{}
+@(private = "file")
+initialized := false
+
+Tab_Kind :: enum {
 	TEXT,
 	METADATA,
+	_COUNT,
 	NONE,
 }
 
 Tabs :: struct {
-	rect:            gui.Rect,
-	text_button:     Tab_Button,
-	metadata_button: Tab_Button,
+	rect:    gui.Rect,
+	buttons: [int(Tab_Kind._COUNT)]Tab_Button,
 }
 
-create_tabs :: proc(rect: gui.Rect) -> Tabs {
-	result := Tabs {
-		rect            = rect,
-		text_button     = create_tab_button(
-			gui.Rect{rect.x, rect.y + TAB_BUTTON_HEIGHT * 0, TABS_WIDTH, TAB_BUTTON_HEIGHT},
-		),
-		metadata_button = create_tab_button(
-			gui.Rect{rect.x, rect.y + TAB_BUTTON_HEIGHT * 1, TABS_WIDTH, TAB_BUTTON_HEIGHT},
-		),
+tabs_init :: proc(rect: gui.Rect) {
+	if initialized {
+		return
 	}
 
-	result.text_button.tooltip = "Text"
-	result.metadata_button.tooltip = "Metadata"
+	instance.rect = rect
 
-	return result
-}
+	layout := gui.layout_new(instance.rect)
 
-set_text_icon :: proc(tabs: ^Tabs, icon: ^gui.Image) {
-	tabs.text_button.icon = icon
-}
-
-set_metadata_icon :: proc(tabs: ^Tabs, icon: ^gui.Image) {
-	tabs.metadata_button.icon = icon
-}
-
-resize_tabs :: proc(tabs: ^Tabs, h: i32) {
-	tabs.rect.h = h
-}
-
-tick_tabs :: proc(tabs: ^Tabs, app: ^App, input: ^gui.Input) -> Clicked_Tab {
-	if tick_tab_button(&tabs.text_button, input) {
-		return .TEXT
+	for i := 0; i < int(Tab_Kind._COUNT); i += 1 {
+		btn_rect := gui.layout_get_rect(&layout, TAB_SIZE, TAB_SIZE)
+		instance.buttons[i] = tab_button_new(btn_rect)
 	}
 
-	if tick_tab_button(&tabs.metadata_button, input) {
-		return .METADATA
+	instance.buttons[int(Tab_Kind.TEXT)].tooltip = "Text"
+	instance.buttons[int(Tab_Kind.METADATA)].tooltip = "Metadata"
+
+	initialized = true
+}
+
+tabs_set_icon :: proc(kind: Tab_Kind, icon: ^gui.Image) {
+	instance.buttons[int(kind)].icon = icon
+}
+
+tabs_resize :: proc(rect: gui.Rect) {
+	instance.rect = rect
+	layout := gui.layout_new(rect)
+
+	for i := 0; i < int(Tab_Kind._COUNT); i += 1 {
+		instance.buttons[i].rect = gui.layout_get_rect(&layout, TAB_SIZE, TAB_SIZE)
+	}
+}
+
+tabs_tick :: proc(input: ^gui.Input) -> Tab_Kind {
+	for i := 0; i < int(Tab_Kind._COUNT); i += 1 {
+		if tab_button_tick(&instance.buttons[i], input) {
+			return Tab_Kind(i)
+		}
 	}
 
 	return .NONE
 }
 
-render_tabs :: proc(tabs: ^Tabs, app: ^App) {
-	gui.draw_rect(app.window, tabs.rect, TABS_BG_COLOR)
+tabs_render :: proc(app: ^App) {
+	gui.draw_rect(app.window, instance.rect, TABS_BG_COLOR)
 
-	render_tab_button(&tabs.text_button, app)
-	render_tab_button(&tabs.metadata_button, app)
+	for i := 0; i < int(Tab_Kind._COUNT); i += 1 {
+		tab_button_render(&instance.buttons[i], app)
+	}
 }

@@ -4,89 +4,74 @@ import "core:strings"
 import "core:fmt"
 import "../gui"
 
+@(private = "file")
+instance := Metadata_Modal{}
+
 Metadata_Field :: struct {
 	name:  cstring,
 	value: cstring,
 }
 
 Metadata_Modal :: struct {
-	is_visible: bool,
-	fields:     [dynamic]Metadata_Field,
+	rect:          gui.Rect,
+	viewport_rect: gui.Rect,
+	fields:        [dynamic]Metadata_Field,
 }
 
-create_metadata_modal :: proc() -> Metadata_Modal {
-	width: i32 = METADATA_MODAL_WIDTH + METADATA_PADDING * 2
-	result := Metadata_Modal {
-		is_visible = false,
-		fields     = make([dynamic]Metadata_Field),
-	}
-
-	return result
+metadata_modal_add_field :: proc(name: cstring, value: cstring) {
+	append(&instance.fields, Metadata_Field{name, value})
 }
 
-add_metadata_field :: proc(mm: ^Metadata_Modal, name: cstring, value: string, app: ^App) {
-	cvalue := strings.clone_to_cstring(value)
-	truncated_value, truncated := gui.truncate_text(&app.fonts[14], cvalue, 200)
+metadata_modal_show :: proc(parent_rect: gui.Rect) {
+	font_size: i32 = 14 // We know that's the size of the font we will use
+	field_count: i32 = i32(len(instance.fields))
 
-	if truncated {
-		delete(cvalue)
-	}
-
-	append(&mm.fields, Metadata_Field{name, truncated_value})
-}
-
-tick_metadata_modal :: proc(mm: ^Metadata_Modal, input: ^gui.Input) {
-	if !mm.is_visible {
-		return
-	}
-
-	if input.escape == .JUST_PRESSED || input.rmb == .JUST_PRESSED {
-		mm.is_visible = false
-	}
-}
-
-render_metadata_modal :: proc(mm: ^Metadata_Modal, app: ^App) {
-	if !mm.is_visible {
-		return
-	}
-
-	font := &app.fonts[14]
-
-	// TODO: this is a mess
-	line_count := i32(len(mm.fields))
-	width: i32 = METADATA_MODAL_WIDTH + METADATA_PADDING * 2
+	width: i32 = METADATA_MODAL_WIDTH
 	height: i32 =
-		line_count * font.size + METADATA_PADDING * 2 + (line_count - 1) * METADATA_LINE_SPACING
+		field_count * font_size +
+		(field_count - 1) * METADATA_MODAL_LINE_SPACING +
+		METADATA_MODAL_PADDING * 2
+	instance.rect = gui.place_rect_in_center(parent_rect, width, height)
+	instance.viewport_rect = gui.contract_rect(instance.rect, METADATA_MODAL_PADDING)
+}
 
-	x, y := gui.get_rect_center(gui.Rect{0, 0, app.window.width, app.window.height})
-	left, top := x - width / 2, y - height / 2
+// TODO: resize this
 
-	modal_rect := gui.Rect{left, top, width, height}
-	gui.draw_rect(app.window, modal_rect, MODAL_BG_COLOR)
-	gui.draw_rect(app.window, modal_rect, MODAL_BORDER_COLOR, 1)
+metadata_modal_tick :: proc(input: ^gui.Input) {
+}
 
-	cursor_x, cursor_y := left + METADATA_PADDING, top + METADATA_PADDING
-	for field, index in mm.fields {
+metadata_modal_render :: proc(app: ^App) {
+	font := assets_get_font_at_size(14)
+
+	gui.draw_rect(app.window, instance.rect, MODAL_BG_COLOR)
+	gui.draw_rect(app.window, instance.rect, MODAL_BORDER_COLOR, 1)
+
+	layout := gui.layout_new(instance.viewport_rect)
+	for field in instance.fields {
+		rect := gui.layout_get_rect(&layout, -1, font.size) // Width doesn't matter
+		row_layout := gui.layout_new(rect)
+		row_layout.state = .HORIZONTAL
+
+		name_width, _ := gui.measure_text(font, field.name)
+		name_rect := gui.layout_get_rect(&row_layout, name_width, -1) // Height doesn't matter
 		gui.draw_text(
 			app.window,
 			font,
 			gui.Text{data = field.name, allocated = false},
-			gui.Rect{cursor_x, cursor_y, -1, -1},
+			gui.Rect{name_rect.x, name_rect.y, -1, -1},
 			METADATA_MODAL_TEXT_COLOR,
 		)
 
 		value_width, _ := gui.measure_text(font, field.value)
-
+		value_rect := gui.layout_get_rect_at_end(&row_layout, value_width, -1) // Height doesn't matter
 		gui.draw_text(
 			app.window,
 			font,
 			gui.Text{data = field.value, allocated = false},
-			gui.Rect{left + width - METADATA_PADDING - value_width, cursor_y, -1, -1},
+			gui.Rect{value_rect.x, value_rect.y, -1, -1},
 			METADATA_MODAL_TEXT_COLOR,
 		)
 
-		if index != len(mm.fields) - 1 {
-			cursor_y += METADATA_LINE_SPACING + font.size
-		}
+		_ = gui.layout_get_rect(&layout, -1, METADATA_MODAL_LINE_SPACING)
 	}
 }

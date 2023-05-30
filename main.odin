@@ -41,22 +41,22 @@ main :: proc() {
 
 	gui.set_background_color(&window, 0, 0, 0, 255)
 
-	application, app_ok := app.create_app(&window, args.filename)
+	application, app_ok := app.app_new(&window, args.filename)
 	if !app_ok {return}
-	defer app.destroy_app(&application)
+	defer app.app_destroy(&application)
 
 	for {
 		quit := gui.handle_events(&window)
 		if quit {break}
 
 		if window.resized {
-			app.resize_app(&application)
+			app.app_resize(&application)
 		}
 
 		gui.begin_frame(&window)
 
-		app.tick(&application, &window.input)
-		app.render(&application)
+		app.app_tick(&application, &window.input)
+		app.app_render(&application)
 
 		gui.end_frame(&window)
 	}

@@ -7,14 +7,14 @@ import "core:unicode/utf16"
 import "../libs/pdfium"
 
 Metadata :: struct {
-	title:         string,
-	author:        string,
-	subject:       string,
-	keywords:      string,
-	creator:       string,
-	producer:      string,
-	creation_date: string,
-	mod_date:      string,
+	title:         cstring,
+	author:        cstring,
+	subject:       cstring,
+	keywords:      cstring,
+	creator:       cstring,
+	producer:      cstring,
+	creation_date: cstring,
+	mod_date:      cstring,
 }
 
 get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
@@ -26,7 +26,7 @@ get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
 	result.producer = get_metadata_tag_value(doc.data, "Producer")
 
 	creation_date := get_metadata_tag_value(doc.data, "CreationDate")
-	if len(creation_date) != 2 {
+	if len(creation_date) != 0 {
 		result.creation_date = parse_date(creation_date)
 		delete(creation_date)
 	} else {
@@ -34,7 +34,7 @@ get_doc_metadata :: proc(doc: Document) -> (result: Metadata) {
 	}
 
 	mod_date := get_metadata_tag_value(doc.data, "ModDate")
-	if len(mod_date) != 2 {
+	if len(mod_date) != 0 {
 		result.mod_date = parse_date(mod_date)
 		delete(mod_date)
 	} else {
@@ -56,7 +56,7 @@ free_doc_metadata :: proc(metadata: ^Metadata) {
 }
 
 @(private)
-get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> string {
+get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> cstring {
 	len := pdfium.get_meta_text(doc, tag, nil, 0)
 
 	src := make([^]u16, len)
@@ -67,18 +67,24 @@ get_metadata_tag_value :: proc(doc: ^pdfium.DOCUMENT, tag: cstring) -> string {
 	defer mem.free(dest)
 	utf16.decode_to_utf8(dest[:len], src[:len])
 
-	return strings.clone_from_ptr(cast(^byte)dest, int(len))
+	str := strings.clone_from_ptr(cast(^byte)dest, int(len))
+	defer delete(str)
+
+	return strings.clone_to_cstring(str)
 }
 
 @(private = "file")
-parse_date :: proc(str: string) -> string {
-	return fmt.aprintf(
+parse_date :: proc(str: cstring) -> cstring {
+	value := strings.clone_from_cstring(str)
+	defer delete(value)
+
+	return fmt.caprintf(
 		"%s-%s-%s %s:%s:%s",
-		str[2:6],
-		str[6:8],
-		str[8:10],
-		str[10:12],
-		str[12:14],
-		str[14:16],
+		value[2:6],
+		value[6:8],
+		value[8:10],
+		value[10:12],
+		value[12:14],
+		value[14:16],
 	)
 }

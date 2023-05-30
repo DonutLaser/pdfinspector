@@ -2,6 +2,11 @@ package app
 
 import "../gui"
 
+@(private = "file")
+instance := Modal_Manager{}
+@(private = "file")
+initialized := false
+
 Modal_Kind :: enum {
 	NONE,
 	METADATA,
@@ -9,64 +14,59 @@ Modal_Kind :: enum {
 }
 
 Modal_Manager :: struct {
-	metadata_modal: Metadata_Modal,
-	text_modal:     Text_Modal,
-	open_modal:     Modal_Kind,
+	open_modal: Modal_Kind,
 }
 
-create_modal_manager :: proc(rect: gui.Rect) -> Modal_Manager {
-	result := Modal_Manager {
-		metadata_modal = create_metadata_modal(), // Doesn't need the center, because the size is dynamic
-		text_modal     = create_text_modal(gui.get_rect_center(rect)),
+modal_manager_init :: proc() {
+	if initialized {
+		return
 	}
 
-	return result
+	initialized = true
 }
 
-open_modal :: proc(mm: ^Modal_Manager, kind: Modal_Kind) {
+modal_manager_open_modal :: proc(kind: Modal_Kind, parent_rect: gui.Rect) {
 	switch kind {
 	case .NONE:
 		panic("Unreachable")
 	case .METADATA:
-		mm.metadata_modal.is_visible = true
-		mm.open_modal = .METADATA
+		instance.open_modal = .METADATA
+		metadata_modal_show(parent_rect)
 	case .TEXT:
-		mm.text_modal.is_visible = true
-		mm.open_modal = .TEXT
+		instance.open_modal = .TEXT
+		text_modal_show(parent_rect)
 	}
 }
 
-resize_modals :: proc(mm: ^Modal_Manager, center_x, center_y: i32) {
-	resize_text_modal(&mm.text_modal, center_x, center_y)
+modal_manager_get_open_modal :: proc() -> Modal_Kind {
+	return instance.open_modal
 }
 
-tick_modal_manager :: proc(mm: ^Modal_Manager, input: ^gui.Input) {
-	if mm.open_modal == .NONE {
+modal_manager_tick :: proc(input: ^gui.Input) {
+	if instance.open_modal == .NONE {
 		return
 	}
 
 	should_close := input.escape == .JUST_PRESSED || input.rmb == .JUST_PRESSED
 
-	#partial switch mm.open_modal {
+	#partial switch instance.open_modal {
 	case .METADATA:
 		if should_close {
-			mm.metadata_modal.is_visible = false
-			mm.open_modal = .NONE
+			instance.open_modal = .NONE
 		} else {
-			tick_metadata_modal(&mm.metadata_modal, input)
+			metadata_modal_tick(input)
 		}
 	case .TEXT:
 		if should_close {
-			mm.text_modal.is_visible = false
-			mm.open_modal = .NONE
+			instance.open_modal = .NONE
 		} else {
-			tick_text_modal(&mm.text_modal, input)
+			text_modal_tick(input)
 		}
 	}
 }
 
-render_modal_manager :: proc(mm: ^Modal_Manager, app: ^App) {
-	if mm.open_modal == .NONE {
+modal_manager_render :: proc(app: ^App) {
+	if instance.open_modal == .NONE {
 		return
 	}
 
@@ -76,10 +76,10 @@ render_modal_manager :: proc(mm: ^Modal_Manager, app: ^App) {
 		MODAL_OVERLAY_COLOR,
 	)
 
-	#partial switch mm.open_modal {
+	#partial switch instance.open_modal {
 	case .METADATA:
-		render_metadata_modal(&mm.metadata_modal, app)
+		metadata_modal_render(app)
 	case .TEXT:
-		render_text_modal(&mm.text_modal, app)
+		text_modal_render(app)
 	}
 }

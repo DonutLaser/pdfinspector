@@ -15,18 +15,20 @@ Tab_Button :: struct {
 	tooltip_stopwatch:  time.Stopwatch,
 }
 
-create_tab_button :: proc(rect: gui.Rect) -> Tab_Button {
+tab_button_new :: proc(rect: gui.Rect) -> Tab_Button {
 	return(
-		Tab_Button{
+		{
 			rect = rect,
 			is_hovered = false,
 			is_pressed = false,
+			icon = nil,
+			tooltip = "",
 			is_tooltip_visible = false,
 		} \
 	)
 }
 
-tick_tab_button :: proc(btn: ^Tab_Button, input: ^gui.Input) -> bool {
+tab_button_tick :: proc(btn: ^Tab_Button, input: ^gui.Input) -> bool {
 	result := false
 
 	time.read_cycle_counter()
@@ -59,12 +61,12 @@ tick_tab_button :: proc(btn: ^Tab_Button, input: ^gui.Input) -> bool {
 	return result
 }
 
-render_tab_button :: proc(btn: ^Tab_Button, app: ^App) {
-	color := BUTTON_COLOR_NORMAL
+tab_button_render :: proc(btn: ^Tab_Button, app: ^App) {
+	color := TAB_COLOR_NORMAL
 	if btn.is_pressed {
-		color = BUTTON_COLOR_PRESSED
+		color = TAB_COLOR_PRESSED
 	} else if btn.is_hovered {
-		color = BUTTON_COLOR_HOVER
+		color = TAB_COLOR_HOVER
 	}
 
 	gui.draw_rect(app.window, btn.rect, color)
@@ -76,36 +78,36 @@ render_tab_button :: proc(btn: ^Tab_Button, app: ^App) {
 			btn.icon,
 			x - btn.icon.width / 2,
 			y - btn.icon.height / 2,
-			BUTTON_ICON_COLOR,
+			TAB_ICON_COLOR,
 		)
 	}
 
-	if btn.is_tooltip_visible {
-		font := &app.fonts[14]
-		tooltip_width, tooltip_height := gui.measure_text(font, btn.tooltip)
-		tooltip_x, _ := gui.get_rect_end(btn.rect)
-		_, tooltip_y := gui.get_rect_center(btn.rect)
-		gui.draw_rect(
-			app.window,
-			gui.Rect{
-				tooltip_x,
-				tooltip_y,
-				tooltip_width + TOOLTIP_PADDING * 2,
-				tooltip_height + TOOLTIP_PADDING * 2,
-			},
-			TOOLTIP_BG_COLOR,
-			0,
-			777,
-		)
-		gui.draw_text(
-			app.window,
-			font,
-			gui.Text{btn.tooltip, false},
-			gui.Rect{tooltip_x + TOOLTIP_PADDING, tooltip_y + TOOLTIP_PADDING, -1, -1},
-			TOOLTIP_TEXT_COLOR,
-			777,
-		)
-	}
+	// if btn.is_tooltip_visible {
+	// 	font := &app.fonts[14]
+	// 	tooltip_width, tooltip_height := gui.measure_text(font, btn.tooltip)
+	// 	tooltip_x, _ := gui.get_rect_end(btn.rect)
+	// 	_, tooltip_y := gui.get_rect_center(btn.rect)
+	// 	gui.draw_rect(
+	// 		app.window,
+	// 		gui.Rect{
+	// 			tooltip_x,
+	// 			tooltip_y,
+	// 			tooltip_width + TOOLTIP_PADDING * 2,
+	// 			tooltip_height + TOOLTIP_PADDING * 2,
+	// 		},
+	// 		TOOLTIP_BG_COLOR,
+	// 		0,
+	// 		777,
+	// 	)
+	// 	gui.draw_text(
+	// 		app.window,
+	// 		font,
+	// 		gui.Text{btn.tooltip, false},
+	// 		gui.Rect{tooltip_x + TOOLTIP_PADDING, tooltip_y + TOOLTIP_PADDING, -1, -1},
+	// 		TOOLTIP_TEXT_COLOR,
+	// 		777,
+	// 	)
+	// }
 }
 
 @(private = "file")
