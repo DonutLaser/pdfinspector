@@ -59,8 +59,8 @@ app_new :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	metadata_modal_add_field("Keywords", result.pdf_metadata.keywords)
 	metadata_modal_add_field("Creator", result.pdf_metadata.creator)
 	metadata_modal_add_field("Producer", result.pdf_metadata.producer)
-	metadata_modal_add_field("CreationDate", result.pdf_metadata.creation_date)
-	metadata_modal_add_field("ModDate", result.pdf_metadata.mod_date)
+	metadata_modal_add_field("Creation date", result.pdf_metadata.creation_date)
+	metadata_modal_add_field("Modification date", result.pdf_metadata.mod_date)
 
 	// Init text modal
 	pdf_text := pdf.get_all_text_in_doc(result.pdf_doc)
