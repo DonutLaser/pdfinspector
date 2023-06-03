@@ -234,6 +234,8 @@ render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 		},
 		STRUCTURE_NODE_TITLE_COLOR,
 	)
+
+	scrollbar_render(&instance.scrollbar, app)
 }
 
 @(private = "file")
