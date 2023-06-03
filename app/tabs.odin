@@ -34,8 +34,8 @@ tabs_init :: proc(rect: gui.Rect) {
 		instance.buttons[i] = tab_button_new(btn_rect)
 	}
 
-	instance.buttons[int(Tab_Kind.TEXT)].tooltip = "Text"
-	instance.buttons[int(Tab_Kind.METADATA)].tooltip = "Metadata"
+	tooltip_set_text(&instance.buttons[int(Tab_Kind.TEXT)].tooltip, "Text")
+	tooltip_set_text(&instance.buttons[int(Tab_Kind.METADATA)].tooltip, "Metadata")
 
 	initialized = true
 }

@@ -6,13 +6,12 @@ import "core:strings"
 import "../gui"
 
 Tab_Button :: struct {
-	rect:               gui.Rect,
-	is_hovered:         bool,
-	is_pressed:         bool,
-	icon:               ^gui.Image,
-	tooltip:            cstring,
-	is_tooltip_visible: bool,
-	tooltip_stopwatch:  time.Stopwatch,
+	rect:              gui.Rect,
+	is_hovered:        bool,
+	is_pressed:        bool,
+	icon:              ^gui.Image,
+	tooltip:           Tooltip,
+	tooltip_stopwatch: time.Stopwatch,
 }
 
 tab_button_new :: proc(rect: gui.Rect) -> Tab_Button {
@@ -22,8 +21,7 @@ tab_button_new :: proc(rect: gui.Rect) -> Tab_Button {
 			is_hovered = false,
 			is_pressed = false,
 			icon = nil,
-			tooltip = "",
-			is_tooltip_visible = false,
+			tooltip = tooltip_new(),
 		} \
 	)
 }
@@ -50,7 +48,10 @@ tab_button_tick :: proc(btn: ^Tab_Button, input: ^gui.Input) -> bool {
 
 		elapsed := time.duration_milliseconds(time.stopwatch_duration(btn.tooltip_stopwatch))
 		if elapsed > 500 {
-			btn.is_tooltip_visible = true
+			tooltip_x, _ := gui.get_rect_end(btn.rect)
+			_, tooltip_y := gui.get_rect_center(btn.rect)
+
+			tooltip_show_at(&btn.tooltip, tooltip_x, tooltip_y)
 		}
 	} else {
 		hide_tooltip(btn)
@@ -82,36 +83,11 @@ tab_button_render :: proc(btn: ^Tab_Button, app: ^App) {
 		)
 	}
 
-	// if btn.is_tooltip_visible {
-	// 	font := &app.fonts[14]
-	// 	tooltip_width, tooltip_height := gui.measure_text(font, btn.tooltip)
-	// 	tooltip_x, _ := gui.get_rect_end(btn.rect)
-	// 	_, tooltip_y := gui.get_rect_center(btn.rect)
-	// 	gui.draw_rect(
-	// 		app.window,
-	// 		gui.Rect{
-	// 			tooltip_x,
-	// 			tooltip_y,
-	// 			tooltip_width + TOOLTIP_PADDING * 2,
-	// 			tooltip_height + TOOLTIP_PADDING * 2,
-	// 		},
-	// 		TOOLTIP_BG_COLOR,
-	// 		0,
-	// 		777,
-	// 	)
-	// 	gui.draw_text(
-	// 		app.window,
-	// 		font,
-	// 		gui.Text{btn.tooltip, false},
-	// 		gui.Rect{tooltip_x + TOOLTIP_PADDING, tooltip_y + TOOLTIP_PADDING, -1, -1},
-	// 		TOOLTIP_TEXT_COLOR,
-	// 		777,
-	// 	)
-	// }
+	tooltip_render(&btn.tooltip, app)
 }
 
 @(private = "file")
 hide_tooltip :: proc(btn: ^Tab_Button) {
 	time.stopwatch_reset(&btn.tooltip_stopwatch)
-	btn.is_tooltip_visible = false
+	tooltip_hide(&btn.tooltip)
 }
