@@ -6,6 +6,7 @@ import "core:unicode/utf16"
 import "core:strings"
 import "../libs/pdfium"
 
+
 Object_Kind :: enum {
 	TEXT,
 	PATH,
@@ -57,9 +58,14 @@ Page :: struct {
 	annotations: [dynamic]Annotation,
 }
 
+Object_Bounds :: struct {
+	left, right, top, bottom: f32,
+}
+
 Object :: struct {
-	kind: Object_Kind,
-	data: union {
+	kind:   Object_Kind,
+	bounds: Object_Bounds,
+	data:   union {
 		Text_Object,
 		Path_Object,
 		Image_Object,
@@ -149,6 +155,8 @@ get_document_structure :: proc(doc: Document) -> [dynamic]Page {
 			objects = make([dynamic]Object, obj_count),
 		}
 
+		_, height_px := get_page_size(page)
+
 		for j: i32 = 0; j < obj_count; j += 1 {
 			obj := Object{}
 
@@ -156,6 +164,18 @@ get_document_structure :: proc(doc: Document) -> [dynamic]Page {
 			pdf_obj_type := pdfium.pageobj_get_type(pdf_obj)
 
 			obj.kind = pageobj_type_to_object_kind(pdf_obj_type)
+			pdfium.pageobj_get_bounds(
+				pdf_obj,
+				&obj.bounds.left,
+				&obj.bounds.bottom,
+				&obj.bounds.right,
+				&obj.bounds.top,
+			)
+
+			obj.bounds.left = pts_to_px(obj.bounds.left)
+			obj.bounds.right = pts_to_px(obj.bounds.right)
+			obj.bounds.top = f32(height_px) - pts_to_px(obj.bounds.top)
+			obj.bounds.bottom = f32(height_px) - pts_to_px(obj.bounds.bottom)
 
 			#partial switch obj.kind {
 			case .TEXT:

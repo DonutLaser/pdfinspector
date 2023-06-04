@@ -3,8 +3,6 @@ package pdf
 import "core:fmt"
 import "../libs/pdfium"
 
-DPI :: 96 // Usually, screen DPI and we do want to render on a screen, so...
-
 Bitmap :: struct {
 	data:   rawptr,
 	width:  i32,
@@ -18,12 +16,8 @@ get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 		return Bitmap{}, false
 	}
 
-	// Get page size
 	page := pdfium.load_page(doc.data, index)
-	width_pts := pdfium.get_page_widthf(page)
-	width_px := i32(width_pts / 72 * DPI)
-	height_pts := pdfium.get_page_heightf(page)
-	height_px := i32(height_pts / 72 * DPI)
+	width_px, height_px := get_page_size(page)
 
 	// Setup pdf
 	bitmap := pdfium.bitmap_create(width_px, height_px, 0)

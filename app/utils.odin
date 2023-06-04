@@ -1,7 +1,7 @@
 package app
 
 @(private = "file")
-SCROLL_SPEED :: 20
+SCROLL_SPEED :: 40
 
 calculate_scroll_offset :: proc(old_offset, scroll, container_height, content_height: i32) -> i32 {
 	if content_height <= container_height {

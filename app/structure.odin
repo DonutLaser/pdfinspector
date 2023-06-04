@@ -23,9 +23,12 @@ Node :: struct {
 	rect:     gui.Rect,
 	expanded: bool,
 	hovered:  bool,
+	pressed:  bool,
 	active:   bool,
 	children: [dynamic]^Node,
 	metadata: [dynamic]Tuple,
+	bounds:   gui.Rect,
+	page:     i32,
 }
 
 Structure :: struct {
@@ -80,9 +83,11 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 			},
 			expanded = false,
 			hovered = false,
+			pressed = false,
 			active = false,
 			children = make([dynamic]^Node, len(page.objects)),
 			metadata = nil,
+			page = -1,
 		}
 
 		for j := 0; j < len(page.objects); j += 1 {
@@ -92,9 +97,17 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 			n.rect = gui.Rect{instance.rect.x, -1, instance.rect.w, STRUCTURE_NODE_HEIGHT}
 			n.expanded = false
 			n.hovered = false
+			n.pressed = false
 			n.active = false
 			n.children = nil
 			n.metadata = nil
+			n.bounds = gui.Rect{
+				i32(obj.bounds.left),
+				i32(obj.bounds.top),
+				i32(obj.bounds.right - obj.bounds.left),
+				i32(obj.bounds.bottom - obj.bounds.top),
+			}
+			n.page = i32(i)
 
 			switch obj.kind {
 			case .TEXT:
@@ -179,10 +192,15 @@ check_mouse_on_node :: proc(node: ^Node, input: ^gui.Input) {
 		node.hovered = true
 
 		if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
-			node.active = true
+			node.pressed = true
 		} else if input.lmb == .JUST_RELEASED {
 			node.expanded = !node.expanded
-			node.active = false
+			node.pressed = false
+			node.active = true
+
+			if instance.active_node != nil {
+				instance.active_node.active = false
+			}
 
 			if node.metadata == nil {
 				object_info_hide()
@@ -190,13 +208,15 @@ check_mouse_on_node :: proc(node: ^Node, input: ^gui.Input) {
 				object_info_show(&node.metadata)
 			}
 
+			document_view_highlight_object(node.page, node.bounds)
+
 			recalculate_nodes()
 
 			instance.active_node = node
 		}
 	} else {
 		node.hovered = false
-		node.active = false
+		node.pressed = false
 	}
 }
 
@@ -221,7 +241,7 @@ structure_render :: proc(app: ^App) {
 @(private = "file")
 render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 	color := STRUCTURE_NODE_BG_COLOR
-	if node.active {
+	if node.pressed || node.active {
 		color = STRUCTURE_NODE_ACTIVE_BG_COLOR
 	} else if node.hovered {
 		color = STRUCTURE_NODE_HOVERED_BG_COLOR
