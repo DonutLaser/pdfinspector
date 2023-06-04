@@ -70,11 +70,7 @@ modal_manager_render :: proc(app: ^App) {
 		return
 	}
 
-	gui.draw_rect(
-		app.window,
-		gui.Rect{0, 0, app.window.width, app.window.height},
-		MODAL_OVERLAY_COLOR,
-	)
+	gui.draw_rect(app.window, gui.Rect{0, 0, app.window.width, app.window.height}, MODAL_OVERLAY_COLOR)
 
 	#partial switch instance.open_modal {
 	case .METADATA:

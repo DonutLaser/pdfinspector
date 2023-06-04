@@ -68,13 +68,7 @@ JsPlatform :: struct {
    *       Option selected by user in dialogue, one of the
    *       JSPLATFORM_ALERT_RETURN_* values above.
    */
-	app_alert:        proc(
-		pThis: ^JsPlatform,
-		Msg: WIDESTRING,
-		Title: WIDESTRING,
-		Type: c.int,
-		Icon: c.int,
-	) -> c.int,
+	app_alert:        proc(pThis: ^JsPlatform, Msg: WIDESTRING, Title: WIDESTRING, Type: c.int, Icon: c.int) -> c.int,
 
 	/*
    * Method: app_beep
@@ -549,11 +543,7 @@ FORMFILLINFO :: struct {
    *       which hadn't been loaded yet. To successfully run the Javascript
    *       action, the implementation needs to load the page.
    */
-	FFI_GetPage:                         proc(
-		pThis: ^FORMFILLINFO,
-		document: ^DOCUMENT,
-		nPageIndex: c.int,
-	) -> ^PAGE,
+	FFI_GetPage:                         proc(pThis: ^FORMFILLINFO, document: ^DOCUMENT, nPageIndex: c.int) -> ^PAGE,
 
 	/*
    * Method: FFI_GetCurrentPage
@@ -775,11 +765,7 @@ FORMFILLINFO :: struct {
    * Return value:
    *       None.
    */
-	FFI_SetCurrentPage:                  proc(
-		pThis: ^FORMFILLINFO,
-		document: ^DOCUMENT,
-		iCurPage: c.int,
-	),
+	FFI_SetCurrentPage:                  proc(pThis: ^FORMFILLINFO, document: ^DOCUMENT, iCurPage: c.int),
 
 	/*
   * Method: FFI_GotoURL
@@ -795,11 +781,7 @@ FORMFILLINFO :: struct {
   * Return value:
   *       None.
   */
-	FFI_GotoURL:                         proc(
-		pThis: ^FORMFILLINFO,
-		document: ^DOCUMENT,
-		wsURL: WIDESTRING,
-	),
+	FFI_GotoURL:                         proc(pThis: ^FORMFILLINFO, document: ^DOCUMENT, wsURL: WIDESTRING),
 
 	/*
    * Method: FFI_GetPageViewRect
@@ -853,11 +835,7 @@ FORMFILLINFO :: struct {
    *       event type is FXFA_PAGEVIEWEVENT_POSTREMOVED, the last 2 pages
    *       have been deleted.
    */
-	FFI_PageEvent:                       proc(
-		pThis: ^FORMFILLINFO,
-		page_count: c.int,
-		event_type: DWORD,
-	),
+	FFI_PageEvent:                       proc(pThis: ^FORMFILLINFO, page_count: c.int, event_type: DWORD),
 
 	/*
    * Method: FFI_PopupMenu
@@ -986,11 +964,7 @@ FORMFILLINFO :: struct {
    * Return value:
    *       The length of the buffer, number of bytes.
    */
-	FFI_GetPlatform:                     proc(
-		pThis: ^FORMFILLINFO,
-		platform: rawptr,
-		length: c.int,
-	) -> c.int,
+	FFI_GetPlatform:                     proc(pThis: ^FORMFILLINFO, platform: rawptr, length: c.int) -> c.int,
 
 	/*
    * Method: FFI_GetLanguage
@@ -1008,11 +982,7 @@ FORMFILLINFO :: struct {
    * Return value:
    *       The length of the buffer, number of bytes.
    */
-	FFI_GetLanguage:                     proc(
-		pThis: ^FORMFILLINFO,
-		language: rawptr,
-		length: c.int,
-	) -> c.int,
+	FFI_GetLanguage:                     proc(pThis: ^FORMFILLINFO, language: rawptr, length: c.int) -> c.int,
 
 	/*
   * Method: FFI_DownloadFromURL
@@ -1028,10 +998,7 @@ FORMFILLINFO :: struct {
   * Return value:
   *       The handle to FPDF_FILEHANDLER.
   */
-	FFI_DownloadFromURL:                 proc(
-		pThis: ^FORMFILLINFO,
-		URL: WIDESTRING,
-	) -> ^FILEHANDLER,
+	FFI_DownloadFromURL:                 proc(pThis: ^FORMFILLINFO, URL: WIDESTRING) -> ^FILEHANDLER,
 	/*
    * Method: FFI_PostRequestURL
    *       This method will post the request to the server URL.
@@ -1106,11 +1073,7 @@ FORMFILLINFO :: struct {
    *     embedder should not copy and store the annot as its scope is
    *     limited to this call only.
    */
-	FFI_OnFocusChange:                   proc(
-		param: ^FORMFILLINFO,
-		annot: ^ANNOTATION,
-		page_index: c.int,
-	),
+	FFI_OnFocusChange:                   proc(param: ^FORMFILLINFO, annot: ^ANNOTATION, page_index: c.int),
 
 	/**
    * Method: FFI_DoURIActionWithKeyboardModifier
@@ -1134,11 +1097,7 @@ FORMFILLINFO :: struct {
    *       See the URI actions description of <<PDF Reference, version 1.7>>
    *       for more details.
    */
-	FFI_DoURIActionWithKeyboardModifier: proc(
-		param: ^FORMFILLINFO,
-		uri: BYTESTRING,
-		modifiers: c.int,
-	),
+	FFI_DoURIActionWithKeyboardModifier: proc(param: ^FORMFILLINFO, uri: BYTESTRING, modifiers: c.int),
 }
 
 @(default_calling_convention = "c")

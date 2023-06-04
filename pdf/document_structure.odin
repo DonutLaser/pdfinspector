@@ -191,10 +191,7 @@ free_document_structure :: proc(structure: [dynamic]Page) {
 
 
 @(private = "file")
-extract_text_object_data :: proc(
-	text_page: ^pdfium.TEXTPAGE,
-	text_obj: ^pdfium.PAGEOBJECT,
-) -> Text_Object {
+extract_text_object_data :: proc(text_page: ^pdfium.TEXTPAGE, text_obj: ^pdfium.PAGEOBJECT) -> Text_Object {
 	result := Text_Object{}
 
 	mode := pdfium.textobj_get_text_render_mode(text_obj)
@@ -223,10 +220,7 @@ extract_text_object_data :: proc(
 }
 
 @(private = "file")
-extract_image_object_data :: proc(
-	page: ^pdfium.PAGE,
-	image_obj: ^pdfium.PAGEOBJECT,
-) -> Image_Object {
+extract_image_object_data :: proc(page: ^pdfium.PAGE, image_obj: ^pdfium.PAGEOBJECT) -> Image_Object {
 	result := Image_Object{}
 
 	data: pdfium.IMAGEOBJ_METADATA = pdfium.IMAGEOBJ_METADATA{}
@@ -305,9 +299,7 @@ pageobj_type_to_object_kind :: proc(t: c.int) -> Object_Kind {
 }
 
 @(private = "file")
-pdfium_text_render_mode_to_text_render_mode :: proc(
-	mode: pdfium.TEXT_RENDERMODE,
-) -> Text_Render_Mode {
+pdfium_text_render_mode_to_text_render_mode :: proc(mode: pdfium.TEXT_RENDERMODE) -> Text_Render_Mode {
 	#partial switch mode {
 	case pdfium.TEXT_RENDERMODE.UNKNOWN:
 		return .UNKNOWN

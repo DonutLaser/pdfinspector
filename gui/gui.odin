@@ -90,10 +90,7 @@ handle_events :: proc(wnd: ^Window) -> bool {
 		case .MOUSEWHEEL:
 			wnd.input.scroll_y = event.wheel.y
 		case .MOUSEBUTTONDOWN, .MOUSEBUTTONUP:
-			new_state :=
-				event.type == .MOUSEBUTTONDOWN \
-				? Button_State.JUST_PRESSED \
-				: Button_State.JUST_RELEASED
+			new_state := event.type == .MOUSEBUTTONDOWN ? Button_State.JUST_PRESSED : Button_State.JUST_RELEASED
 
 			switch event.button.button {
 			case sdl.BUTTON_LEFT:
@@ -102,8 +99,7 @@ handle_events :: proc(wnd: ^Window) -> bool {
 				wnd.input.rmb = new_state
 			}
 		case .KEYDOWN, .KEYUP:
-			new_state :=
-				event.type == .KEYDOWN ? Button_State.JUST_PRESSED : Button_State.JUST_RELEASED
+			new_state := event.type == .KEYDOWN ? Button_State.JUST_PRESSED : Button_State.JUST_RELEASED
 
 			#partial switch event.key.keysym.sym {
 			case .LCTRL, .RCTRL:
@@ -133,13 +129,7 @@ set_background_color :: proc(window: ^Window, r: u8, g: u8, b: u8, a: u8) {
 }
 
 begin_frame :: proc(window: ^Window) {
-	sdl.SetRenderDrawColor(
-		window.renderer,
-		window.bg_color.r,
-		window.bg_color.g,
-		window.bg_color.b,
-		window.bg_color.a,
-	)
+	sdl.SetRenderDrawColor(window.renderer, window.bg_color.r, window.bg_color.g, window.bg_color.b, window.bg_color.a)
 	sdl.RenderClear(window.renderer)
 }
 

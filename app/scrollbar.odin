@@ -14,12 +14,7 @@ Scrollbar :: struct {
 }
 
 scrollbar_setup :: proc(s: ^Scrollbar, parent_rect, viewport_rect: gui.Rect, content_height: i32) {
-	s.rect = gui.Rect{
-		parent_rect.x + parent_rect.w - SCROLLBAR_SIZE,
-		parent_rect.y,
-		SCROLLBAR_SIZE,
-		parent_rect.h,
-	}
+	s.rect = gui.Rect{parent_rect.x + parent_rect.w - SCROLLBAR_SIZE, parent_rect.y, SCROLLBAR_SIZE, parent_rect.h}
 	s.handle_rect = gui.Rect{
 		s.rect.x,
 		s.rect.y,
@@ -45,12 +40,7 @@ scrollbar_render :: proc(s: ^Scrollbar, app: ^App) {
 	gui.draw_rect(app.window, s.rect, SCROLLBAR_BG_COLOR)
 	gui.draw_rect(
 		app.window,
-		gui.Rect{
-			s.handle_rect.x,
-			s.handle_rect.y + s.handle_scroll,
-			s.handle_rect.w,
-			s.handle_rect.h,
-		},
+		gui.Rect{s.handle_rect.x, s.handle_rect.y + s.handle_scroll, s.handle_rect.w, s.handle_rect.h},
 		SCROLLBAR_HANDLE_COLOR,
 	)
 }

@@ -62,56 +62,24 @@ Draw_Instruction :: struct {
 	z_index: i32,
 }
 
-draw_rect :: proc(
-	window: ^Window,
-	rect: Rect,
-	color: Color,
-	border_weight: i32 = 0,
-	z_index: i32 = 0,
-) {
+draw_rect :: proc(window: ^Window, rect: Rect, color: Color, border_weight: i32 = 0, z_index: i32 = 0) {
 	append(
 		&window.render_queue,
-		Draw_Instruction{
-			it = .RECT,
-			data = Draw_Instruction_Rect{rect, color, border_weight},
-			z_index = z_index,
-		},
+		Draw_Instruction{it = .RECT, data = Draw_Instruction_Rect{rect, color, border_weight}, z_index = z_index},
 	)
 }
 
-draw_text :: proc(
-	window: ^Window,
-	font: ^Font,
-	text: Text,
-	rect: Rect,
-	color: Color,
-	z_index: i32 = 0,
-) {
+draw_text :: proc(window: ^Window, font: ^Font, text: Text, rect: Rect, color: Color, z_index: i32 = 0) {
 	append(
 		&window.render_queue,
-		Draw_Instruction{
-			it = .TEXT,
-			data = Draw_Instruction_Text{font, text, rect, color},
-			z_index = z_index,
-		},
+		Draw_Instruction{it = .TEXT, data = Draw_Instruction_Text{font, text, rect, color}, z_index = z_index},
 	)
 }
 
-draw_text_u16 :: proc(
-	window: ^Window,
-	font: ^Font,
-	text: Text_u16,
-	rect: Rect,
-	color: Color,
-	z_index: i32 = 0,
-) {
+draw_text_u16 :: proc(window: ^Window, font: ^Font, text: Text_u16, rect: Rect, color: Color, z_index: i32 = 0) {
 	append(
 		&window.render_queue,
-		Draw_Instruction{
-			it = .TEXT_U16,
-			data = Draw_Instruction_Text{font, text, rect, color},
-			z_index = z_index,
-		},
+		Draw_Instruction{it = .TEXT_U16, data = Draw_Instruction_Text{font, text, rect, color}, z_index = z_index},
 	)
 
 }
@@ -119,43 +87,29 @@ draw_text_u16 :: proc(
 draw_image :: proc(window: ^Window, img: ^Image, x, y: i32, color: Color, z_index: i32 = 0) {
 	append(
 		&window.render_queue,
-		Draw_Instruction{
-			it = .IMAGE,
-			data = Draw_Instruction_Image{img, x, y, color},
-			z_index = z_index,
-		},
+		Draw_Instruction{it = .IMAGE, data = Draw_Instruction_Image{img, x, y, color}, z_index = z_index},
 	)
 }
 
 clip_rect :: proc(window: ^Window, rect: Rect) {
-	append(
-		&window.render_queue,
-		Draw_Instruction{it = .CLIP, data = Draw_Instruction_Clip{true, rect}, z_index = 0},
-	)
+	append(&window.render_queue, Draw_Instruction{it = .CLIP, data = Draw_Instruction_Clip{true, rect}, z_index = 0})
 }
 
 unclip_rect :: proc(window: ^Window) {
 	append(
 		&window.render_queue,
-		Draw_Instruction{
-			it = .CLIP,
-			data = Draw_Instruction_Clip{false, Rect{0, 0, 0, 0}},
-			z_index = 0,
-		},
+		Draw_Instruction{it = .CLIP, data = Draw_Instruction_Clip{false, Rect{0, 0, 0, 0}}, z_index = 0},
 	)
 }
 
 
 @(private)
 draw_render_queue :: proc(renderer: ^sdl.Renderer, queue: ^[dynamic]Draw_Instruction) {
-	slice.stable_sort_by_cmp(
-		queue[:],
-		proc(i1: Draw_Instruction, i2: Draw_Instruction) -> slice.Ordering {
-			if i1.z_index < i2.z_index {return .Less}
-			if i1.z_index > i2.z_index {return .Greater}
-			return .Equal
-		},
-	)
+	slice.stable_sort_by_cmp(queue[:], proc(i1: Draw_Instruction, i2: Draw_Instruction) -> slice.Ordering {
+		if i1.z_index < i2.z_index {return .Less}
+		if i1.z_index > i2.z_index {return .Greater}
+		return .Equal
+	})
 
 	for instruction in queue {
 		switch instruction.it {
@@ -183,18 +137,8 @@ render_rect :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Rect) {
 
 	if i.border_weight > 0 {
 		top := sdl.Rect{i.rect.x, i.rect.y, i.rect.w, i.border_weight}
-		right := sdl.Rect{
-			i.rect.x + i.rect.w - i.border_weight,
-			i.rect.y,
-			i.border_weight,
-			i.rect.h,
-		}
-		bottom := sdl.Rect{
-			i.rect.x,
-			i.rect.y + i.rect.h - i.border_weight,
-			i.rect.w,
-			i.border_weight,
-		}
+		right := sdl.Rect{i.rect.x + i.rect.w - i.border_weight, i.rect.y, i.border_weight, i.rect.h}
+		bottom := sdl.Rect{i.rect.x, i.rect.y + i.rect.h - i.border_weight, i.rect.w, i.border_weight}
 		left := sdl.Rect{i.rect.x, i.rect.y, i.border_weight, i.rect.h}
 
 		sdl.RenderFillRect(renderer, &top)
@@ -211,11 +155,7 @@ render_rect :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Rect) {
 @(private = "file")
 render_text :: proc(renderer: ^sdl.Renderer, i: Draw_Instruction_Text) {
 	txt := i.text.(Text)
-	surface := ttf.RenderUTF8_Blended(
-		i.font.instance,
-		txt.data,
-		sdl.Color{i.color.r, i.color.g, i.color.b, i.color.a},
-	)
+	surface := ttf.RenderUTF8_Blended(i.font.instance, txt.data, sdl.Color{i.color.r, i.color.g, i.color.b, i.color.a})
 	defer sdl.FreeSurface(surface)
 
 	texture := sdl.CreateTextureFromSurface(renderer, surface)

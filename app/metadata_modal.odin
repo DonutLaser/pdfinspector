@@ -28,9 +28,7 @@ metadata_modal_show :: proc(parent_rect: gui.Rect) {
 
 	width: i32 = METADATA_MODAL_WIDTH
 	height: i32 =
-		field_count * font_size +
-		(field_count - 1) * METADATA_MODAL_LINE_SPACING +
-		METADATA_MODAL_PADDING * 2
+		field_count * font_size + (field_count - 1) * METADATA_MODAL_LINE_SPACING + METADATA_MODAL_PADDING * 2
 	instance.rect = gui.place_rect_in_center(parent_rect, width, height)
 	instance.viewport_rect = gui.contract_rect(instance.rect, METADATA_MODAL_PADDING)
 }

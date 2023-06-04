@@ -186,12 +186,7 @@ SYSFONTINFO :: struct {
    *          Number of bytes needed, if buffer not provided or not large
    *          enough, or number of bytes written into buffer otherwise.
    */
-	GetFaceName:    proc(
-		pThis: ^SYSFONTINFO,
-		hFont: rawptr,
-		buffer: cstring,
-		buf_size: c.ulong,
-	) -> c.ulong,
+	GetFaceName:    proc(pThis: ^SYSFONTINFO, hFont: rawptr, buffer: cstring, buf_size: c.ulong) -> c.ulong,
 
 	/*
    * Method: GetFontCharset

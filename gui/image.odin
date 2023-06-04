@@ -48,21 +48,8 @@ image_from_pdf_bitmap :: proc(bitmap: pdf.Bitmap, window: ^Window) -> (Image, bo
 	return produce_image(surface, window)
 }
 
-image_from_pdf_text :: proc(
-	txt: pdf.Pdf_Text,
-	font: ^Font,
-	width: i32,
-	window: ^Window,
-) -> (
-	Image,
-	bool,
-) {
-	surface := ttf.RenderUNICODE_Blended_Wrapped(
-		font.instance,
-		txt.data,
-		sdl.Color{255, 255, 255, 255},
-		u32(width),
-	)
+image_from_pdf_text :: proc(txt: pdf.Pdf_Text, font: ^Font, width: i32, window: ^Window) -> (Image, bool) {
+	surface := ttf.RenderUNICODE_Blended_Wrapped(font.instance, txt.data, sdl.Color{255, 255, 255, 255}, u32(width))
 	if surface == nil {
 		print_sdl_error()
 		return Image{}, false

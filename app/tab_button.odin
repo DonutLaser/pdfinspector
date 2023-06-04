@@ -15,15 +15,7 @@ Tab_Button :: struct {
 }
 
 tab_button_new :: proc(rect: gui.Rect) -> Tab_Button {
-	return(
-		{
-			rect = rect,
-			is_hovered = false,
-			is_pressed = false,
-			icon = nil,
-			tooltip = tooltip_new(),
-		} \
-	)
+	return {rect = rect, is_hovered = false, is_pressed = false, icon = nil, tooltip = tooltip_new()}
 }
 
 tab_button_tick :: proc(btn: ^Tab_Button, input: ^gui.Input) -> bool {
@@ -74,13 +66,7 @@ tab_button_render :: proc(btn: ^Tab_Button, app: ^App) {
 
 	if btn.icon != nil {
 		x, y := gui.get_rect_center(btn.rect)
-		gui.draw_image(
-			app.window,
-			btn.icon,
-			x - btn.icon.width / 2,
-			y - btn.icon.height / 2,
-			TAB_ICON_COLOR,
-		)
+		gui.draw_image(app.window, btn.icon, x - btn.icon.width / 2, y - btn.icon.height / 2, TAB_ICON_COLOR)
 	}
 
 	tooltip_render(&btn.tooltip, app)

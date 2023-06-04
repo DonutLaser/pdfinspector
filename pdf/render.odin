@@ -14,11 +14,7 @@ Bitmap :: struct {
 
 get_page_bitmap :: proc(doc: Document, index: i32) -> (Bitmap, bool) {
 	if index >= doc.page_count {
-		fmt.eprintf(
-			"Error: Cannot get page %d bitmap, there are only %d pages in the document",
-			index,
-			doc.page_count,
-		)
+		fmt.eprintf("Error: Cannot get page %d bitmap, there are only %d pages in the document", index, doc.page_count)
 		return Bitmap{}, false
 	}
 

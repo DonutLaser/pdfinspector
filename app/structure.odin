@@ -109,33 +109,15 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 				// append(&n.metadata, Tuple{"Font weight", data.font.weight}) // TODO
 				// append(&n.metadata, Tuple{"Font ascent", data.font.ascent}) // TODO
 				// append(&n.metadata, Tuple{"Font descent", data.font.descent}) // TODO
-				append(
-					&n.metadata,
-					Tuple{"Font is fixed pitch", bool_to_string(data.font.is_fixed_pitch)},
-				)
+				append(&n.metadata, Tuple{"Font is fixed pitch", bool_to_string(data.font.is_fixed_pitch)})
 				append(&n.metadata, Tuple{"Font is serif", bool_to_string(data.font.is_serif)})
-				append(
-					&n.metadata,
-					Tuple{"Font is symbolic", bool_to_string(data.font.is_symbolic)},
-				)
+				append(&n.metadata, Tuple{"Font is symbolic", bool_to_string(data.font.is_symbolic)})
 				append(&n.metadata, Tuple{"Font is script", bool_to_string(data.font.is_script)})
 				append(&n.metadata, Tuple{"Font is italic", bool_to_string(data.font.is_italic)})
-				append(
-					&n.metadata,
-					Tuple{"Font is all caps", bool_to_string(data.font.is_all_caps)},
-				)
-				append(
-					&n.metadata,
-					Tuple{"Font is small caps", bool_to_string(data.font.is_small_caps)},
-				)
-				append(
-					&n.metadata,
-					Tuple{"Font is forced bold", bool_to_string(data.font.is_forced_bold)},
-				)
-				append(
-					&n.metadata,
-					Tuple{"Font is embedded", bool_to_string(data.font.is_embedded)},
-				)
+				append(&n.metadata, Tuple{"Font is all caps", bool_to_string(data.font.is_all_caps)})
+				append(&n.metadata, Tuple{"Font is small caps", bool_to_string(data.font.is_small_caps)})
+				append(&n.metadata, Tuple{"Font is forced bold", bool_to_string(data.font.is_forced_bold)})
+				append(&n.metadata, Tuple{"Font is embedded", bool_to_string(data.font.is_embedded)})
 			case .IMAGE:
 				n.label = "Image"
 				n.metadata = make([dynamic]Tuple)
@@ -278,11 +260,7 @@ recalculate_nodes :: proc() {
 		instance.nodes[i].rect = gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
 		if instance.nodes[i].expanded {
 			for j := 0; j < len(instance.nodes[i].children); j += 1 {
-				instance.nodes[i].children[j].rect = gui.layout_get_rect(
-					&layout,
-					-1,
-					STRUCTURE_NODE_HEIGHT,
-				)
+				instance.nodes[i].children[j].rect = gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
 			}
 		}
 	}

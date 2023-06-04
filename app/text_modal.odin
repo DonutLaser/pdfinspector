@@ -20,12 +20,7 @@ Text_Modal :: struct {
 text_modal_show :: proc(parent_rect: gui.Rect) {
 	instance.rect = gui.place_rect_in_center(parent_rect, TEXT_MODAL_SIZE, TEXT_MODAL_SIZE)
 	instance.viewport_rect = gui.contract_rect(instance.rect, TEXT_MODAL_PADDING)
-	scrollbar_setup(
-		&instance.scrollbar,
-		instance.rect,
-		instance.viewport_rect,
-		instance.text.height,
-	)
+	scrollbar_setup(&instance.scrollbar, instance.rect, instance.viewport_rect, instance.text.height)
 }
 
 // TODO: resize this
