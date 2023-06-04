@@ -188,7 +188,8 @@ structure_tick :: proc(input: ^gui.Input) {
 @(private = "file")
 check_mouse_on_node :: proc(node: ^Node, input: ^gui.Input) {
 	rect := gui.Rect{node.rect.x, node.rect.y + instance.y_offset, node.rect.w, node.rect.h}
-	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, rect) {
+	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, rect) &&
+	   gui.is_point_in_rect(input.mouse_x, input.mouse_y, instance.rect) {
 		node.hovered = true
 
 		if input.lmb == .JUST_PRESSED || input.lmb == .PRESSED {
