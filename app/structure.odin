@@ -229,6 +229,7 @@ render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 
 	offset_rect := gui.Rect{node.rect.x, node.rect.y + y_offset, node.rect.w, node.rect.h}
 
+	// Draw background and bottom border
 	gui.draw_rect(app.window, offset_rect, color)
 	gui.draw_rect(
 		app.window,
@@ -236,19 +237,44 @@ render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 		STRUCTURE_NODE_BORDER_COLOR,
 	)
 
+	// Draw text
 	main_font := assets_get_font_at_size(14)
+
+	layout := gui.layout_new(offset_rect)
+	layout.state = .HORIZONTAL
+
+	text_width, text_height := gui.measure_text(main_font, node.label)
+
+	text_rect := gui.layout_get_rect(&layout, text_width, text_height)
 	gui.draw_text(
 		app.window,
 		main_font,
 		gui.Text{data = node.label, allocated = false},
 		gui.Rect{
-			offset_rect.x + STRUCTURE_NODE_PADDING * depth,
-			offset_rect.y + STRUCTURE_NODE_HEIGHT / 2 - main_font.size / 2,
+			text_rect.x + STRUCTURE_NODE_PADDING * depth,
+			text_rect.y + STRUCTURE_NODE_HEIGHT / 2 - main_font.size / 2,
 			-1,
 			-1,
 		},
 		STRUCTURE_NODE_TITLE_COLOR,
 	)
+
+	// Draw icon
+	if node.children != nil && len(node.children) > 0 {
+		icon := assets_get_image("not_expanded.png")
+		if node.expanded {
+			icon = assets_get_image("expanded.png")
+		}
+
+		icon_rect := gui.layout_get_rect_at_end(&layout, icon.width, icon.height)
+		gui.draw_image(
+			app.window,
+			icon,
+			icon_rect.x - STRUCTURE_NODE_PADDING,
+			icon_rect.y + STRUCTURE_NODE_HEIGHT / 2 - icon.height / 2,
+			STRUCTURE_NODE_ICON_COLOR,
+		)
+	}
 
 	scrollbar_render(&instance.scrollbar, app)
 }

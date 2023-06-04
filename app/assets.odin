@@ -33,6 +33,8 @@ assets_init :: proc(window: ^gui.Window) {
 	images_to_load := []Image_To_Load{
 		Image_To_Load{"./assets/icons/text.png", "text.png"},
 		Image_To_Load{"./assets/icons/metadata.png", "metadata.png"},
+		Image_To_Load{"./assets/icons/expanded.png", "expanded.png"},
+		Image_To_Load{"./assets/icons/not_expanded.png", "not_expanded.png"},
 	}
 	for image in images_to_load {
 		icon, ok := gui.load_image(image.path, window)
