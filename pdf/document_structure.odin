@@ -85,6 +85,37 @@ Image_Object :: struct {
 	marked_content_id: i32,
 }
 
+colorspace_to_string :: proc(colorspace: i32) -> cstring {
+	switch colorspace {
+	case pdfium.COLORSPACE_UNKNOWN:
+		return "Unknown"
+	case pdfium.COLORSPACE_DEVICEGRAY:
+		return "Device Gray"
+	case pdfium.COLORSPACE_DEVICERGB:
+		return "Device RGB"
+	case pdfium.COLORSPACE_DEVICECMYK:
+		return "Device CMYK"
+	case pdfium.COLORSPACE_CALGRAY:
+		return "Device CalGray"
+	case pdfium.COLORSPACE_CALRGB:
+		return "Device CalRGB"
+	case pdfium.COLORSPACE_LAB:
+		return "Device LAB"
+	case pdfium.COLORSPACE_ICCBASED:
+		return "Device ICC based"
+	case pdfium.COLORSPACE_SEPARATION:
+		return "Device Separation"
+	case pdfium.COLORSPACE_DEVICEN:
+		return "Device En"
+	case pdfium.COLORSPACE_INDEXED:
+		return "Indexed"
+	case pdfium.COLORSPACE_PATTERN:
+		return "Pattern"
+	case:
+		return ""
+	}
+}
+
 Annotation :: struct {}
 
 Font :: struct {

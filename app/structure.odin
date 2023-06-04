@@ -138,6 +138,16 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 				)
 			case .IMAGE:
 				n.label = "Image"
+				n.metadata = make([dynamic]Tuple)
+
+				data := obj.data.(pdf.Image_Object)
+				// append(&n.metadata, Tuple{"Width", data.width}) // TODO
+				// append(&n.metadata, Tuple{"Height", data.height}) // TODO
+				// append(&n.metadata, Tuple{"HDPI", data.hdpi}) // TODO
+				// append(&n.metadata, Tuple{"VDPI", data.vdpi}) // TODO
+				// append(&n.metadata, Tuple{"Bits per pixel", data.bpp}) // TODO
+				append(&n.metadata, Tuple{"Colorspace", pdf.colorspace_to_string(data.colorspace)})
+			// append(&n.metadata, Tuple{"Marked content id", data.marked_content_id}) // TODO
 			case .PATH:
 				n.label = "Path"
 			case .FORM:
