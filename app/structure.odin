@@ -241,6 +241,12 @@ structure_render :: proc(app: ^App) {
 
 @(private = "file")
 render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
+	offset_rect := gui.Rect{node.rect.x, node.rect.y + y_offset, node.rect.w, node.rect.h}
+
+	if !gui.do_rects_overlaps(offset_rect, instance.rect) {
+		return
+	}
+
 	color := STRUCTURE_NODE_BG_COLOR
 	if node.pressed || node.active {
 		color = STRUCTURE_NODE_ACTIVE_BG_COLOR
@@ -248,7 +254,6 @@ render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 		color = STRUCTURE_NODE_HOVERED_BG_COLOR
 	}
 
-	offset_rect := gui.Rect{node.rect.x, node.rect.y + y_offset, node.rect.w, node.rect.h}
 
 	// Draw background and bottom border
 	gui.draw_rect(app.window, offset_rect, color)
