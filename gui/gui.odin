@@ -38,7 +38,7 @@ init_window :: proc(title: cstring, width: i32, height: i32) -> (Window, bool) {
 		sdl.WINDOWPOS_UNDEFINED,
 		width,
 		height,
-		{.RESIZABLE},
+		{.RESIZABLE, .MAXIMIZED},
 	)
 	if result.instance == nil {
 		print_sdl_error()
