@@ -40,6 +40,7 @@ tooltip_render :: proc(t: ^Tooltip, app: ^App) {
 	font := assets_get_font_at_size(14)
 
 	gui.draw_rect(app.window, t.rect, TOOLTIP_BG_COLOR, 0, 777)
+	gui.draw_rect(app.window, t.rect, TOOLTIP_BORDER_COLOR, 1, 777)
 	gui.draw_text(
 		app.window,
 		font,
