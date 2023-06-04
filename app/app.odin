@@ -124,6 +124,7 @@ app_tick :: proc(app: ^App, input: ^gui.Input) {
 
 	structure_tick(input)
 	object_info_tick(input)
+	document_view_tick(input)
 }
 
 app_render :: proc(app: ^App) {
