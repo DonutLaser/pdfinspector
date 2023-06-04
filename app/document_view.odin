@@ -62,6 +62,7 @@ document_view_resize :: proc(rect: gui.Rect) {
 }
 
 document_view_tick :: proc(input: ^gui.Input) {
+	// TODO: implement zooming, ctrl + mouse_wheel
 	if gui.is_point_in_rect(input.mouse_x, input.mouse_y, instance.rect) {
 		instance.y_offset = calculate_scroll_offset(
 			instance.y_offset,
