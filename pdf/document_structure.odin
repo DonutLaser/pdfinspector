@@ -75,7 +75,15 @@ Text_Object :: struct {
 
 Path_Object :: struct {}
 
-Image_Object :: struct {}
+Image_Object :: struct {
+	width:             u32,
+	height:            u32,
+	hdpi:              f32,
+	vdpi:              f32,
+	bpp:               u32,
+	colorspace:        i32,
+	marked_content_id: i32,
+}
 
 Annotation :: struct {}
 
@@ -124,7 +132,7 @@ get_document_structure :: proc(doc: Document) -> [dynamic]Page {
 			case .PATH:
 			// TODO: extract path object data
 			case .IMAGE:
-			// TODO: extract image object data
+				obj.data = extract_image_object_data(page, pdf_obj)
 			}
 
 			result[i].objects[j] = obj
@@ -179,6 +187,27 @@ extract_text_object_data :: proc(
 
 	mem.free(bytes)
 	mem.free(buffer)
+
+	return result
+}
+
+@(private = "file")
+extract_image_object_data :: proc(
+	page: ^pdfium.PAGE,
+	image_obj: ^pdfium.PAGEOBJECT,
+) -> Image_Object {
+	result := Image_Object{}
+
+	data: pdfium.IMAGEOBJ_METADATA = pdfium.IMAGEOBJ_METADATA{}
+	pdfium.imageobj_get_image_metadata(image_obj, page, &data)
+
+	result.width = data.width
+	result.height = data.height
+	result.hdpi = data.horizontal_dpi
+	result.vdpi = data.vertical_dpi
+	result.bpp = data.bits_per_pixel
+	result.colorspace = data.colorspace
+	result.marked_content_id = data.marked_content_id
 
 	return result
 }
