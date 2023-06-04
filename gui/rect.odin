@@ -30,3 +30,10 @@ place_rect_in_center :: proc(parent_rect: Rect, width, height: i32) -> Rect {
 contract_rect :: proc(rect: Rect, amount: i32) -> Rect {
 	return {rect.x + amount, rect.y + amount, rect.w - amount * 2, rect.h - amount * 2}
 }
+
+do_rects_overlaps :: proc(rect1: Rect, rect2: Rect) -> bool {
+	if rect1.x + rect1.w < rect2.x || rect1.y + rect1.h < rect2.y {return false}
+	if rect2.x + rect2.w < rect1.x || rect2.y + rect2.h < rect1.y {return false}
+
+	return true
+}

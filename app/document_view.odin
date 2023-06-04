@@ -41,7 +41,7 @@ document_view_resize :: proc(rect: gui.Rect) {
 }
 
 document_view_tick :: proc(app: ^App, input: ^gui.Input) {
-
+	// TODO: implement scrolling
 }
 
 document_view_render :: proc(app: ^App) {
@@ -49,16 +49,18 @@ document_view_render :: proc(app: ^App) {
 
 	layout := gui.layout_new(instance.rect)
 
-	// TODO: do not draw image if no pixels of it are visible
 	for page in instance.pages {
 		image := &instance.pages[0].image
 		rect := gui.layout_get_rect(&layout, image.width, image.height)
-		gui.draw_image(
-			app.window,
-			&instance.pages[0].image,
-			rect.x + (rect.w - image.width) / 2,
-			rect.y,
-			gui.Color{255, 255, 255, 255},
-		)
+
+		if gui.do_rects_overlaps(instance.rect, rect) {
+			gui.draw_image(
+				app.window,
+				&instance.pages[0].image,
+				rect.x + (rect.w - image.width) / 2,
+				rect.y,
+				gui.Color{255, 255, 255, 255},
+			)
+		}
 	}
 }
