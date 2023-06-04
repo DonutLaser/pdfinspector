@@ -281,18 +281,33 @@ render_node :: proc(node: ^Node, app: ^App, y_offset: i32, depth: i32 = 1) {
 
 @(private = "file")
 recalculate_nodes :: proc() {
-	layout := gui.layout_new(instance.rect)
+	// Calculate the full height for the scrollbar	
+	instance.total_height = 0
 	for i := 0; i < len(instance.nodes); i += 1 {
-		instance.nodes[i].rect = gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
+		instance.total_height += STRUCTURE_NODE_HEIGHT
 		if instance.nodes[i].expanded {
-			for j := 0; j < len(instance.nodes[i].children); j += 1 {
-				instance.nodes[i].children[j].rect = gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
-			}
+			instance.total_height += i32(len(instance.nodes[i].children) * STRUCTURE_NODE_HEIGHT)
 		}
 	}
 
-	instance.total_height = layout.rect.y
 	scrollbar_setup(&instance.scrollbar, instance.rect, instance.rect, instance.total_height)
+
+	// Calculate rects of the nodes
+	layout := gui.layout_new(instance.rect)
+	for i := 0; i < len(instance.nodes); i += 1 {
+		rect := gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
+		if instance.scrollbar.is_visible {rect.w -= instance.scrollbar.rect.w}
+		instance.nodes[i].rect = rect
+
+		if instance.nodes[i].expanded {
+			for j := 0; j < len(instance.nodes[i].children); j += 1 {
+				rect = gui.layout_get_rect(&layout, -1, STRUCTURE_NODE_HEIGHT)
+				if instance.scrollbar.is_visible {rect.w -= instance.scrollbar.rect.w}
+
+				instance.nodes[i].children[j].rect = rect
+			}
+		}
+	}
 }
 
 @(private = "file")
