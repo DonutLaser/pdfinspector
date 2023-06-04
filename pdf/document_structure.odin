@@ -27,7 +27,7 @@ Text_Render_Mode :: enum {
 	CLIP,
 }
 
-text_render_mode_to_string :: proc(mode: Text_Render_Mode) -> string {
+text_render_mode_to_string :: proc(mode: Text_Render_Mode) -> cstring {
 	switch mode {
 	case .UNKNOWN:
 		return "uknown"
@@ -68,7 +68,7 @@ Object :: struct {
 
 Text_Object :: struct {
 	mode: Text_Render_Mode,
-	text: string,
+	text: cstring,
 	size: f32,
 	font: Font,
 }
@@ -80,7 +80,7 @@ Image_Object :: struct {}
 Annotation :: struct {}
 
 Font :: struct {
-	name:           string,
+	name:           cstring,
 	is_fixed_pitch: bool,
 	is_serif:       bool,
 	is_symbolic:    bool,
@@ -169,7 +169,9 @@ extract_text_object_data :: proc(
 
 	bytes := make([^]u8, len)
 	utf16.decode_to_utf8(bytes[:len], buffer[:len])
-	result.text = strings.clone_from_bytes(bytes[:len])
+	str := strings.clone_from_bytes(bytes[:len])
+	defer delete(str)
+	result.text = strings.clone_to_cstring(str)
 
 	pdfium.textobj_get_font_size(text_obj, &result.size)
 
@@ -205,7 +207,9 @@ extract_font_data :: proc(text_obj: ^pdfium.PAGEOBJECT, size: f32) -> Font {
 	len := pdfium.font_get_font_name(font_data, nil, 0)
 	buffer := make([^]byte, len)
 	pdfium.font_get_font_name(font_data, buffer, len)
-	result.name = strings.clone_from_bytes(buffer[:len])
+	str := strings.clone_from_bytes(buffer[:len])
+	defer delete(str)
+	result.name = strings.clone_to_cstring(str)
 
 	return result
 }

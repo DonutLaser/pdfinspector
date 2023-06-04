@@ -33,11 +33,29 @@ app_new :: proc(window: ^gui.Window, pdf_file_path: string) -> (App, bool) {
 	tabs_set_icon(.TEXT, assets_get_image("text.png"))
 	tabs_set_icon(.METADATA, assets_get_image("metadata.png"))
 
+	structure_layout := gui.layout_new(
+		gui.layout_get_rect(&layout, STRUCTURE_WIDTH, result.window.height),
+	)
+
 	// Init structure
-	structure_init(gui.layout_get_rect(&layout, STRUCTURE_WIDTH, -1))
+	structure_init(
+		gui.layout_get_rect(
+			&structure_layout,
+			-1,
+			i32(f32(result.window.height) * STRUCTURE_HEIGHT),
+		),
+	)
 	pdf_structure := pdf.get_document_structure(result.pdf_doc)
 	defer pdf.free_document_structure(pdf_structure)
 	structure_setup(pdf_structure)
+
+	object_info_init(
+		gui.layout_get_rect(
+			&structure_layout,
+			-1,
+			i32(f32(result.window.height) * OBJECT_INFO_HEIGHT),
+		),
+	)
 
 	// Init document view
 	document_view_init(gui.layout_get_rect(&layout, -1, -1))
@@ -97,7 +115,20 @@ app_resize :: proc(app: ^App) {
 	layout.state = .HORIZONTAL
 
 	tabs_resize(gui.layout_get_rect(&layout, TAB_SIZE, -1))
-	structure_resize(gui.layout_get_rect(&layout, STRUCTURE_WIDTH, -1))
+
+	structure_layout := gui.layout_new(
+		gui.layout_get_rect(&layout, STRUCTURE_WIDTH, app.window.height),
+	)
+	structure_resize(
+		gui.layout_get_rect(&structure_layout, -1, i32(f32(app.window.height) * STRUCTURE_HEIGHT)),
+	)
+	object_info_resize(
+		gui.layout_get_rect(
+			&structure_layout,
+			-1,
+			i32(f32(app.window.height) * OBJECT_INFO_HEIGHT),
+		),
+	)
 	document_view_resize(gui.layout_get_rect(&layout, -1, -1))
 }
 
@@ -116,11 +147,13 @@ app_tick :: proc(app: ^App, input: ^gui.Input) {
 	}
 
 	structure_tick(input)
+	object_info_tick(input)
 }
 
 app_render :: proc(app: ^App) {
 	tabs_render(app)
 	structure_render(app)
+	object_info_render(app)
 	document_view_render(app)
 
 	modal_manager_render(app)

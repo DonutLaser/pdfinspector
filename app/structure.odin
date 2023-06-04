@@ -12,15 +12,9 @@ instance := Structure{}
 @(private = "file")
 initialized := false
 
-@(private = "file")
 Tuple :: struct {
-	key:   string,
-	value: union {
-		string,
-		i32,
-		f32,
-		bool,
-	},
+	key:   cstring,
+	value: cstring,
 }
 
 @(private = "file")
@@ -110,20 +104,38 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 				data := obj.data.(pdf.Text_Object)
 				append(&n.metadata, Tuple{"Mode", pdf.text_render_mode_to_string(data.mode)})
 				append(&n.metadata, Tuple{"Value", data.text})
-				append(&n.metadata, Tuple{"Size", data.size})
+				// append(&n.metadata, Tuple{"Size", data.size}) // TODO
 				append(&n.metadata, Tuple{"Font name", data.font.name})
-				append(&n.metadata, Tuple{"Font weight", data.font.weight})
-				append(&n.metadata, Tuple{"Font ascent", data.font.ascent})
-				append(&n.metadata, Tuple{"Font descent", data.font.descent})
-				append(&n.metadata, Tuple{"Font is fixed pitch", data.font.is_fixed_pitch})
-				append(&n.metadata, Tuple{"Font is serif", data.font.is_serif})
-				append(&n.metadata, Tuple{"Font is symbolilc", data.font.is_symbolic})
-				append(&n.metadata, Tuple{"Font is script", data.font.is_script})
-				append(&n.metadata, Tuple{"Font is italic", data.font.is_italic})
-				append(&n.metadata, Tuple{"Font is all caps", data.font.is_all_caps})
-				append(&n.metadata, Tuple{"Font is small caps", data.font.is_small_caps})
-				append(&n.metadata, Tuple{"Font is forced bold", data.font.is_forced_bold})
-				append(&n.metadata, Tuple{"Font is embedded", data.font.is_embedded})
+				// append(&n.metadata, Tuple{"Font weight", data.font.weight}) // TODO
+				// append(&n.metadata, Tuple{"Font ascent", data.font.ascent}) // TODO
+				// append(&n.metadata, Tuple{"Font descent", data.font.descent}) // TODO
+				append(
+					&n.metadata,
+					Tuple{"Font is fixed pitch", bool_to_string(data.font.is_fixed_pitch)},
+				)
+				append(&n.metadata, Tuple{"Font is serif", bool_to_string(data.font.is_serif)})
+				append(
+					&n.metadata,
+					Tuple{"Font is symbolic", bool_to_string(data.font.is_symbolic)},
+				)
+				append(&n.metadata, Tuple{"Font is script", bool_to_string(data.font.is_script)})
+				append(&n.metadata, Tuple{"Font is italic", bool_to_string(data.font.is_italic)})
+				append(
+					&n.metadata,
+					Tuple{"Font is all caps", bool_to_string(data.font.is_all_caps)},
+				)
+				append(
+					&n.metadata,
+					Tuple{"Font is small caps", bool_to_string(data.font.is_small_caps)},
+				)
+				append(
+					&n.metadata,
+					Tuple{"Font is forced bold", bool_to_string(data.font.is_forced_bold)},
+				)
+				append(
+					&n.metadata,
+					Tuple{"Font is embedded", bool_to_string(data.font.is_embedded)},
+				)
 			case .IMAGE:
 				n.label = "Image"
 			case .PATH:
@@ -145,12 +157,15 @@ structure_setup :: proc(pdf_structure: [dynamic]pdf.Page) {
 }
 
 structure_tick :: proc(input: ^gui.Input) {
+	// TODO: prevent clicks on invisible items
 	for i := 0; i < len(instance.nodes); i += 1 {
 		n := instance.nodes[i]
 		check_mouse_on_node(&instance.nodes[i], input)
 
-		for j := 0; j < len(n.children); j += 1 {
-			check_mouse_on_node(n.children[j], input)
+		if (instance.nodes[i].expanded) {
+			for j := 0; j < len(n.children); j += 1 {
+				check_mouse_on_node(n.children[j], input)
+			}
 		}
 	}
 
@@ -177,6 +192,12 @@ check_mouse_on_node :: proc(node: ^Node, input: ^gui.Input) {
 			node.expanded = !node.expanded
 			node.active = false
 
+			if node.metadata == nil {
+				object_info_hide()
+			} else {
+				object_info_show(&node.metadata)
+			}
+
 			recalculate_nodes()
 
 			instance.active_node = node
@@ -192,6 +213,7 @@ structure_render :: proc(app: ^App) {
 
 	main_font := assets_get_font_at_size(14)
 
+	gui.clip_rect(app.window, instance.rect)
 	for i := 0; i < len(instance.nodes); i += 1 {
 		render_node(&instance.nodes[i], app, instance.y_offset)
 
@@ -201,6 +223,7 @@ structure_render :: proc(app: ^App) {
 			}
 		}
 	}
+	gui.unclip_rect(app.window)
 }
 
 @(private = "file")
@@ -256,4 +279,9 @@ recalculate_nodes :: proc() {
 
 	instance.total_height = layout.rect.y
 	scrollbar_setup(&instance.scrollbar, instance.rect, instance.rect, instance.total_height)
+}
+
+@(private = "file")
+bool_to_string :: proc(value: bool) -> cstring {
+	return value ? "Yes" : "No"
 }
